@@ -47,6 +47,17 @@ function getSourceTone(source: string | null) {
   return "border-zinc-200 bg-white text-zinc-700";
 }
 
+function isImageFirstPost(post: Post) {
+  const source = post.source?.toLowerCase() ?? "";
+  const category = post.category?.toLowerCase() ?? "";
+
+  return (
+    source.includes("instagram") ||
+    category.includes("ai culture") ||
+    category.includes("ai images")
+  );
+}
+
 function PostImage({
   imageUrl,
   title,
@@ -81,6 +92,34 @@ function PostImage({
 }
 
 function SignalCard({ post }: { post: Post }) {
+  if (isImageFirstPost(post)) {
+    return (
+      <article className="group overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
+        <a
+          href={post.link}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={post.title}
+          className="relative block"
+        >
+          <PostImage
+            imageUrl={post.image_url}
+            title={post.title}
+            className="aspect-[4/5] w-full transition duration-500 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-zinc-950/80 via-zinc-950/30 to-transparent p-4 pt-16">
+            <span className="rounded-full border border-white/20 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-950">
+              {post.source ?? "Image"}
+            </span>
+            <span className="rounded-full border border-white/15 bg-[#25252a] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+              {post.category ?? "AI Culture"}
+            </span>
+          </div>
+        </a>
+      </article>
+    );
+  }
+
   return (
     <article className="group overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
       <a href={post.link} target="_blank" rel="noreferrer" className="block">
