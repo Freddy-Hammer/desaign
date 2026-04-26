@@ -10,7 +10,7 @@ type Post = {
   source: string | null;
   category: string | null;
   summary: string | null;
-  image_url: string | null;
+  thumbnail_url: string | null;
   created_at: string | null;
 };
 
@@ -105,7 +105,7 @@ function SignalCard({ post }: { post: Post }) {
           className="relative block"
         >
           <PostImage
-            imageUrl={post.image_url}
+            imageUrl={post.thumbnail_url}
             title={post.title}
             className="aspect-[4/5] w-full transition duration-500 group-hover:scale-[1.03]"
           />
@@ -126,7 +126,7 @@ function SignalCard({ post }: { post: Post }) {
     <article className="group overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
       <a href={post.link} target="_blank" rel="noreferrer" className="block">
         <PostImage
-          imageUrl={post.image_url}
+          imageUrl={post.thumbnail_url}
           title={post.title}
           className="aspect-[16/10] w-full"
         />
@@ -174,7 +174,7 @@ function SignalCard({ post }: { post: Post }) {
 export default async function Home() {
   const { data, error } = await supabase
     .from("posts")
-    .select("id,title,link,source,category,summary,image_url,created_at")
+    .select("id,title,link,source,category,summary,thumbnail_url,created_at")
     .order("created_at", { ascending: false });
 
   const posts = (data ?? []) as Post[];
@@ -248,7 +248,7 @@ export default async function Home() {
           <article className="grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:grid-cols-[1.15fr_0.85fr]">
             <a href={featuredPost.link} target="_blank" rel="noreferrer">
               <PostImage
-                imageUrl={featuredPost.image_url}
+                imageUrl={featuredPost.thumbnail_url}
                 title={featuredPost.title}
                 className="h-full min-h-80 w-full"
               />
