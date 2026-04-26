@@ -348,6 +348,14 @@ Inputs needed from the user:
 - desired categories/tags
 - whether to collect Shorts or ignore them
 
+Required private environment variable:
+
+```text
+YOUTUBE_API_KEY
+```
+
+This key must be used only by local or backend automation scripts. It must not be exposed in frontend code and must not use a `NEXT_PUBLIC_` prefix.
+
 Expected output:
 
 - candidate rows inserted into `raw_items`
