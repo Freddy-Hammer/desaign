@@ -2,13 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { Post } from "../types/post";
-import {
-  isImageFirstPost,
-  SignalCard,
-  PostImage,
-  getSourceTone,
-  formatDate,
-} from "./signal-card";
+import { isImageFirstPost, SignalCard } from "./signal-card";
 
 type ContentType = "Videos" | "Images" | "Articles";
 
@@ -45,8 +39,6 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
   );
 
   const filtersActive = activeTypes.size > 0 || activeTags.size > 0;
-  const featuredPost = filteredPosts[0] ?? null;
-  const gridPosts = filteredPosts.slice(1);
 
   function toggleType(type: ContentType) {
     setActiveTypes((prev) => {
@@ -86,7 +78,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
 
   return (
     <>
-      <section id="signals" className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+      <section id="signals" className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
         {/* Filter bar */}
         <div className="mb-8 space-y-3">
           {/* Content type row */}
@@ -134,7 +126,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
               <span>·</span>
               <button
                 onClick={clearFilters}
-                className="text-zinc-500 underline underline-offset-2 hover:text-zinc-800 transition"
+                className="text-zinc-500 underline underline-offset-2 transition hover:text-zinc-800"
               >
                 Clear filters
               </button>
@@ -156,64 +148,9 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
             </button>
           </div>
         )}
-
-        {/* Featured post */}
-        {featuredPost && (
-          <article className="grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:grid-cols-[1.15fr_0.85fr]">
-            <a href={featuredPost.link} target="_blank" rel="noreferrer">
-              <PostImage
-                imageUrl={featuredPost.thumbnail_url}
-                title={featuredPost.title}
-                className="h-full min-h-80 w-full"
-              />
-            </a>
-
-            <div className="flex flex-col justify-between gap-10 p-7 sm:p-9">
-              <div className="space-y-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-800">
-                    {filtersActive ? "Top result" : "Featured signal"}
-                  </span>
-                  <span
-                    className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${getSourceTone(
-                      featuredPost.source,
-                    )}`}
-                  >
-                    {featuredPost.source ?? "Source"}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  <a
-                    href={featuredPost.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block text-3xl font-black leading-tight tracking-tight text-zinc-950 transition hover:text-cyan-800 sm:text-4xl"
-                  >
-                    {featuredPost.title}
-                  </a>
-                  {featuredPost.summary && (
-                    <p className="text-base leading-8 text-zinc-600">
-                      {featuredPost.summary}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-5">
-                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-800">
-                  {featuredPost.category ?? "Design + AI"}
-                </span>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
-                  {formatDate(featuredPost.created_at)}
-                </span>
-              </div>
-            </div>
-          </article>
-        )}
       </section>
 
-      {gridPosts.length > 0 && (
+      {filteredPosts.length > 0 && (
         <section id="latest" className="mx-auto max-w-7xl px-5 pb-16 sm:px-8">
           <div className="mb-7 flex items-end justify-between gap-6">
             <div>
@@ -231,7 +168,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {gridPosts.map((post) => (
+            {filteredPosts.map((post) => (
               <SignalCard key={post.id} post={post} />
             ))}
           </div>
