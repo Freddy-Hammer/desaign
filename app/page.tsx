@@ -96,18 +96,18 @@ function PostImage({
 function SignalCard({ post }: { post: Post }) {
   if (isImageFirstPost(post)) {
     return (
-      <article className="group self-start overflow-hidden rounded-lg border border-zinc-200 bg-[#25252a] shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
+      <article className="group overflow-hidden rounded-lg border border-zinc-200 bg-[#25252a] shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
         <a
           href={post.link}
           target="_blank"
           rel="noreferrer"
           aria-label={post.title}
-          className="relative block"
+          className="relative block h-full"
         >
           <PostImage
             imageUrl={post.thumbnail_url}
             title={post.title}
-            className="aspect-[4/5] w-full transition duration-500 group-hover:scale-[1.03]"
+            className="h-full min-h-[360px] w-full transition duration-500 group-hover:scale-[1.03]"
           />
           <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 bg-gradient-to-t from-zinc-950/80 via-zinc-950/30 to-transparent p-4 pt-16">
             <span className="rounded-full border border-white/20 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-950">
