@@ -22,14 +22,6 @@ export default async function Home() {
           <Link href="/" className="text-lg font-black tracking-tight">
             DesAIgn
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-zinc-600 sm:flex">
-            <a href="#signals" className="transition hover:text-zinc-950">
-              Signals
-            </a>
-            <a href="#latest" className="transition hover:text-zinc-950">
-              Latest
-            </a>
-          </nav>
         </div>
       </header>
 
