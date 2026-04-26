@@ -153,6 +153,38 @@ async function fetchHtml(workUrl: string): Promise<string | null> {
   }
 }
 
+// Fetch the first real image from an individual project page (static only).
+// Used as a fallback when the listing page has no img tags (e.g. video-only tiles).
+async function fetchProjectThumbnail(projectUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(projectUrl, {
+      headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // OG image
+    const og =
+      html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/)?.[1] ??
+      html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/)?.[1];
+    if (og?.trim() && !og.includes("og-image")) return og.trim();
+
+    // First non-SVG, non-data-URI img src or data-src
+    const candidates = [
+      ...html.matchAll(/<img[^>]*\ssrc=["']([^"']+)["']/g),
+      ...html.matchAll(/<img[^>]*\sdata-src=["']([^"']+)["']/g),
+    ].map((m) => m[1]);
+
+    for (const src of candidates) {
+      if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
+      try { return new URL(src, projectUrl).href; } catch { /* skip */ }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchHtmlWithPlaywright(workUrl: string): Promise<string | null> {
   try {
     const { chromium } = await import("playwright");
@@ -183,5 +215,24 @@ export async function scrapeStudio(name: string, workUrl: string): Promise<Studi
     return [];
   }
 
-  return extractCases($, workUrl, name);
+  const cases = extractCases($, workUrl, name);
+
+  // Resolve missing thumbnails by fetching each project page individually.
+  // Handles studios that show videos (not images) in their work listing.
+  const missing = cases.filter((c) => !c.thumbnailUrl);
+  if (missing.length > 0) {
+    console.log(`  ↳ Resolving ${missing.length} missing thumbnails from project pages…`);
+    const BATCH = 5;
+    for (let i = 0; i < missing.length; i += BATCH) {
+      await Promise.all(
+        missing.slice(i, i + BATCH).map(async (c) => {
+          c.thumbnailUrl = await fetchProjectThumbnail(c.projectUrl);
+        })
+      );
+    }
+    const resolved = missing.filter((c) => c.thumbnailUrl).length;
+    console.log(`  ↳ Resolved ${resolved}/${missing.length} thumbnails`);
+  }
+
+  return cases;
 }
