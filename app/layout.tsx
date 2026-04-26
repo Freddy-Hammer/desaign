@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DesAIgn",
   description: "Curated design and AI signals worth your attention.",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
