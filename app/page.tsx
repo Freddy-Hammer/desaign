@@ -40,7 +40,7 @@ export default async function Home() {
               Design + AI news hub
             </span>
             <div className="space-y-5">
-              <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-zinc-950 sm:text-6xl lg:text-7xl">
+              <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-zinc-950 sm:text-6xl lg:text-[3.7rem]">
                 Useful signals for designers working with AI.
               </h1>
               <p className="max-w-xl text-base leading-8 text-zinc-600 sm:text-lg">
