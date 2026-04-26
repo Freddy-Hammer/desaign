@@ -103,11 +103,6 @@ export default async function Home() {
                     >
                       {featuredPost.title}
                     </a>
-                    {featuredPost.summary && (
-                      <p className="hidden">
-                        {featuredPost.summary}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-5">
