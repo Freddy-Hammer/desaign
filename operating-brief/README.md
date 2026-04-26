@@ -27,6 +27,118 @@ GitHub:
 - Hosting: Vercel
 - Future automation: research and curation agents
 
+## Working Principles For Future Automation
+
+The project should be built for low-noise, low-token, repeatable work.
+
+Agents should not scan the whole project unless the task truly requires it. Most changes should begin with targeted inspection:
+
+- identify the likely file or system area first
+- read only the relevant files
+- use search before broad reading
+- avoid rereading generated folders such as `.next` and `node_modules`
+- avoid dumping large files into context when a smaller grep/search is enough
+- summarize discovered context instead of carrying large raw outputs forward
+
+For small UI requests, prefer the narrowest path:
+
+```text
+request -> locate component/style -> edit exact lines -> lint/build if needed -> commit/push if requested
+```
+
+Do not spend large context budgets on unrelated architecture, docs, dependencies, or database schema when the requested change is clearly local.
+
+## Reusable Automation Rule
+
+If a process is likely to happen more than once, create a reusable script instead of doing it manually every time.
+
+Examples:
+
+- collecting YouTube channel videos
+- checking for duplicate `raw_items`
+- promoting approved raw items into `posts`
+- validating thumbnail URLs
+- sending approved posts to Telegram
+- generating reports from Supabase content
+- cleaning or normalizing tags/categories
+
+Scripts can be written in TypeScript, JavaScript, Python, SQL, or whichever tool fits the job best.
+
+Reusable scripts should:
+
+- live in a clear folder such as `scripts/`
+- have a focused purpose
+- accept inputs through arguments or environment variables
+- avoid hardcoded secrets
+- print concise summaries
+- be safe to rerun when possible
+- document required environment variables at the top of the file or in a nearby README
+
+Prefer automation that can operate on a small selected dataset instead of loading everything.
+
+## Plan Mode Questionnaire
+
+When starting a new automation or larger feature, first ask only the questions needed to avoid wasted work.
+
+Suggested questionnaire:
+
+1. What is the immediate goal?
+2. Is this a one-time task or a reusable workflow?
+3. Which source is involved first? Example: YouTube, Instagram, Medium, LinkedIn, design studio sites, Telegram.
+4. What is the smallest useful test case?
+5. What inputs will the user provide? Example: channel URLs, freshness window, tags, categories.
+6. What output should be produced? Example: `raw_items` rows, `posts` rows, Telegram messages, a local report.
+7. Should the process publish automatically, or stop at review?
+8. What should count as a duplicate?
+9. What should be ignored?
+10. What secrets or environment variables are required?
+11. What should be logged so the user can audit what happened?
+12. What is the rollback or safe retry plan if something goes wrong?
+
+For the first automation phase, keep the answer simple:
+
+```text
+One YouTube research workflow
+-> collect from user-provided channels
+-> insert candidates into raw_items
+-> no automatic public publishing
+```
+
+## Context Budget Guardrails
+
+Agents should treat context as a limited resource.
+
+Recommended behavior:
+
+- start from this operating brief
+- inspect `package.json` and the relevant app files only when code changes are needed
+- inspect Supabase schema only when database behavior is involved
+- inspect deployment/Git state only when publishing changes
+- do not inspect unrelated folders just because they exist
+- do not read media files, build output, or dependency folders unless explicitly necessary
+
+When the task is small, the agent should keep its own working context small too.
+
+Before doing broad exploration, the agent should explain why broad exploration is needed.
+
+## Safety And Publishing Guardrails
+
+Automation should default to review-first behavior.
+
+Do not automatically publish to the public website or Telegram unless the workflow explicitly says publishing is allowed.
+
+For early stages:
+
+```text
+collect -> raw_items -> human review
+```
+
+Only later:
+
+```text
+approved -> posts -> website -> Telegram
+```
+
 ## Current Database Model
 
 There are two important Supabase tables:
