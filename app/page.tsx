@@ -321,6 +321,37 @@ export default async function Home() {
           </div>
         </section>
       )}
+
+      <footer className="border-t border-zinc-900/10 bg-[#25252a] text-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-lg font-black tracking-tight">DesAIgn Radar</p>
+            <p className="mt-2 max-w-md text-sm leading-6 text-white/60">
+              Design and AI signals, useful links, and occasional strange image
+              experiments from the edge of the feed.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="https://www.instagram.com/desaign_radar?igsh=MTQ2NTl4ZzNta28wNA%3D%3D"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://t.me/DesAIgn_radar"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
+            >
+              Telegram
+            </a>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
