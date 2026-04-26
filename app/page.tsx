@@ -74,12 +74,12 @@ export default async function Home() {
           </div>
 
           {featuredPost && (
-            <article className="grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:grid-cols-[1.15fr_0.85fr]">
+            <article className="grid max-h-[460px] overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:grid-cols-[1.15fr_0.85fr]">
               <a href={featuredPost.link} target="_blank" rel="noreferrer">
                 <PostImage
                   imageUrl={featuredPost.thumbnail_url}
                   title={featuredPost.title}
-                  className="h-full min-h-80 w-full"
+                  className="h-full min-h-72 w-full"
                 />
               </a>
               <div className="flex flex-col justify-between gap-10 p-7 sm:p-9">
@@ -104,7 +104,7 @@ export default async function Home() {
                       {featuredPost.title}
                     </a>
                     {featuredPost.summary && (
-                      <p className="text-base leading-8 text-zinc-600">
+                      <p className="line-clamp-3 text-base leading-7 text-zinc-600">
                         {featuredPost.summary}
                       </p>
                     )}
