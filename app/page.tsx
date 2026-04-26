@@ -1,10 +1,41 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "./types/post";
-import { PostImage, getSourceTone, formatDate } from "./components/signal-card";
+import { PostImage, getSourceTone, formatDate, isImageFirstPost } from "./components/signal-card";
 import { FilterableGallery } from "./components/filterable-gallery";
 
 export const revalidate = 0;
+
+function classifyPostType(post: Post): "video" | "image" | "article" {
+  const src = post.source?.toLowerCase() ?? "";
+  if (src.includes("youtube")) return "video";
+  if (isImageFirstPost(post)) return "image";
+  return "article";
+}
+
+// Within each calendar-day group, interleave by type: video → article → image → repeat.
+// Keeps fresh batches diverse without shuffling the entire history.
+function diversifyOrder(posts: Post[]): Post[] {
+  const byDay = new Map<string, Post[]>();
+  for (const p of posts) {
+    const day = p.created_at?.slice(0, 10) ?? "unknown";
+    if (!byDay.has(day)) byDay.set(day, []);
+    byDay.get(day)!.push(p);
+  }
+  const result: Post[] = [];
+  for (const dayPosts of byDay.values()) {
+    const videos = dayPosts.filter((p) => classifyPostType(p) === "video");
+    const articles = dayPosts.filter((p) => classifyPostType(p) === "article");
+    const images = dayPosts.filter((p) => classifyPostType(p) === "image");
+    const max = Math.max(videos.length, articles.length, images.length);
+    for (let i = 0; i < max; i++) {
+      if (i < videos.length) result.push(videos[i]);
+      if (i < articles.length) result.push(articles[i]);
+      if (i < images.length) result.push(images[i]);
+    }
+  }
+  return result;
+}
 
 export default async function Home() {
   const { data, error } = await supabase
@@ -12,7 +43,7 @@ export default async function Home() {
     .select("id,title,link,source,category,summary,thumbnail_url,created_at")
     .order("created_at", { ascending: false });
 
-  const posts = (data ?? []) as Post[];
+  const posts = diversifyOrder((data ?? []) as Post[]);
   const featuredPost = posts[0] ?? null;
 
   return (
