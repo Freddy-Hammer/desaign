@@ -74,15 +74,15 @@ export default async function Home() {
           </div>
 
           {featuredPost && (
-            <article className="grid overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:h-[420px] lg:grid-cols-[1.15fr_0.85fr]">
-              <a href={featuredPost.link} target="_blank" rel="noreferrer" className="block h-48 lg:h-full">
+            <article className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:flex lg:h-[420px]">
+              <a href={featuredPost.link} target="_blank" rel="noreferrer" className="block aspect-video shrink-0 lg:aspect-auto lg:h-full lg:w-[54%]">
                 <PostImage
                   imageUrl={featuredPost.thumbnail_url}
                   title={featuredPost.title}
                   className="h-full w-full"
                 />
               </a>
-              <div className="flex flex-col justify-between gap-6 overflow-hidden p-7 sm:p-9">
+              <div className="flex min-w-0 flex-1 flex-col justify-between gap-6 overflow-hidden p-7 sm:p-9">
                 <div className="space-y-5 overflow-hidden">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-800">
