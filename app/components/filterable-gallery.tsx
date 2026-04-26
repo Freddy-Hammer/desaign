@@ -101,8 +101,9 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
               <button
                 key={type}
                 onClick={() => toggleType(type)}
-                className={`${pillBase} ${activeTypes.has(type) ? pillActiveType : pillInactive}`}
+                className={`${pillBase} ${activeTypes.has(type) ? pillActiveType : pillInactive} flex items-center gap-1.5`}
               >
+                <span className="inline-block h-2 w-2 rounded-full bg-zinc-950" />
                 {type}
               </button>
             ))}
