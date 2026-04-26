@@ -104,7 +104,7 @@ export default async function Home() {
                       {featuredPost.title}
                     </a>
                     {featuredPost.summary && (
-                      <p className="line-clamp-3 text-sm leading-6 text-zinc-600">
+                      <p className="hidden">
                         {featuredPost.summary}
                       </p>
                     )}
