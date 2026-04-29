@@ -178,6 +178,14 @@ export default async function Home() {
             >
               Telegram
             </a>
+            <a
+              href="https://x.com/DesAIgn_Radar"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
+            >
+              X
+            </a>
           </div>
         </div>
       </footer>
