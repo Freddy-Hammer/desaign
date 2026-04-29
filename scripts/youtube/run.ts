@@ -22,6 +22,8 @@ const DEFAULT_CHANNELS = [
   "https://www.youtube.com/@schoolofmotion",
   "https://www.youtube.com/@babichnick",
   "https://www.youtube.com/@Chase-H-AI",
+  "https://www.youtube.com/@FluxAcademy",
+  "https://www.youtube.com/@Figma",
 ];
 const DEFAULT_FRESHNESS_DAYS = 7;
 const DEFAULT_MAX_ITEMS_PER_CHANNEL = 50;
