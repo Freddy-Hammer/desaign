@@ -9,10 +9,26 @@ import { getSupabase } from "../lib/supabase-client";
 async function main() {
   const sb = getSupabase();
 
+  // Cleanup: any 'new' rows that lack a thumbnail are auto-rejected so
+  // they never appear in the review queue. This keeps legacy items
+  // (collected before the auto-reject was added at insert time) out of view.
+  const { data: cleaned, error: cleanupErr } = await sb
+    .from("raw_items")
+    .update({ status: "rejected", notes: "Auto-rejected: no thumbnail (cleanup)" })
+    .eq("status", "new")
+    .is("thumbnail_url", null)
+    .select("id");
+  if (cleanupErr) {
+    console.warn(`Cleanup warning: ${cleanupErr.message}`);
+  } else if (cleaned && cleaned.length > 0) {
+    console.log(`Auto-rejected ${cleaned.length} legacy item(s) without thumbnail`);
+  }
+
   const { data: items, error } = await sb
     .from("raw_items")
     .select("*")
     .eq("status", "new")
+    .not("thumbnail_url", "is", null)
     .order("raw_published_at", { ascending: false });
 
   if (error) throw new Error(`Failed to fetch raw_items: ${error.message}`);
@@ -80,7 +96,7 @@ function renderCard(item: any): string {
 
   return `<div class="card" id="card-${item.id}">
   <div class="card-thumb">
-    <img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="this.parentElement.style.background='#1a1a1a'" />
+    <img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="autoRejectBroken('${item.id}')" />
   </div>
   <div class="card-body">
     <div class="card-title">
@@ -94,7 +110,8 @@ function renderCard(item: any): string {
     ${desc ? `<div class="card-desc">${esc(desc)}</div>` : ""}
     <div class="card-actions">
       <a class="btn btn-open" href="${esc(item.source_url)}" target="_blank" rel="noopener">Open ↗</a>
-      <button class="btn btn-approve" onclick="openApprove('${item.id}')">✓ Approve</button>
+      <button class="btn btn-details" onclick="openDetails('${item.id}')">⋯ Details</button>
+      <button class="btn btn-approve" id="approve-${item.id}" onclick="quickApprove('${item.id}')">✓ Approve</button>
       <button class="btn btn-reject" id="reject-${item.id}" onclick="reject('${item.id}')">✕ Reject</button>
     </div>
   </div>
@@ -155,10 +172,15 @@ function buildHtml(
     .btn:hover:not(:disabled) { opacity: 0.82; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-open { background: #f0f0f0; color: #555; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-details { background: #f0f0f0; color: #555; }
     .btn-approve { background: #16a34a; color: #fff; }
     .btn-reject { background: #dc2626; color: #fff; }
     .btn-cancel { background: #f0f0f0; color: #555; }
     .btn-publish { background: #111; color: #fff; }
+
+    .btn-select-all { background: #2563eb; color: #fff; font-size: 12px; padding: 6px 14px; border-radius: 7px; border: none; cursor: pointer; font-weight: 600; transition: opacity 0.15s; }
+    .btn-select-all:hover { opacity: 0.82; }
+    .btn-select-all.active { background: #374151; }
 
     .run-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #111; color: #fff; padding: 14px 32px; align-items: center; justify-content: space-between; z-index: 50; border-top: 1px solid #333; }
     .run-bar.visible { display: flex; }
@@ -181,31 +203,133 @@ function buildHtml(
     .toast { position: fixed; bottom: 70px; right: 22px; background: #111; color: #fff; padding: 11px 18px; border-radius: 9px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; transform: translateY(6px); transition: all 0.22s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.error { background: #dc2626; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; padding: 0 32px; background: #111; border-top: 1px solid #1f1f1f; }
+    .tab { background: transparent; color: #888; border: none; padding: 11px 20px; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit; }
+    .tab:hover { color: #ddd; }
+    .tab.active { color: #fff; border-bottom-color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* X Post Builder */
+    .x-container { max-width: 820px; margin: 28px auto; padding: 0 20px; }
+    .x-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 22px 26px; margin-bottom: 16px; }
+    .x-mode-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .x-mode-row label { font-size: 13px; color: #444; font-weight: 600; }
+    .x-mode-row select { border: 1.5px solid #e4e4e4; border-radius: 7px; padding: 6px 9px; font-size: 13px; font-family: inherit; }
+    .x-status { font-size: 12px; color: #666; margin-left: auto; }
+    .x-status strong { color: #111; }
+    .x-status.warn strong { color: #dc2626; }
+
+    .x-source-section { margin-top: 14px; }
+    .x-source-section h3 { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .x-row { display: flex; align-items: center; gap: 11px; padding: 8px 4px; border-bottom: 1px solid #f0f0f0; }
+    .x-row:last-child { border-bottom: none; }
+    .x-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+    .x-row.disabled { opacity: 0.5; }
+    .x-row-thumb { width: 64px; height: 36px; object-fit: cover; border-radius: 4px; background: #f0f0f0; flex-shrink: 0; }
+    .x-row-info { flex: 1; min-width: 0; }
+    .x-row-title { font-size: 13px; font-weight: 600; color: #111; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .x-row-meta { font-size: 11px; color: #888; margin-top: 2px; }
+
+    .x-preview-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 22px 26px; }
+    .x-preview-card h3 { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .x-preview-cover { width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px; margin-bottom: 14px; background: #f0f0f0; display: block; }
+    .x-preview-cover-empty { width: 100%; height: 120px; background: #f4f4f4; border-radius: 8px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
+    .x-text { width: 100%; min-height: 220px; border: 1.5px solid #e4e4e4; border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.55; font-family: inherit; resize: vertical; outline: none; }
+    .x-text:focus { border-color: #111; }
+    .x-actions { display: flex; gap: 9px; justify-content: flex-end; margin-top: 14px; }
+    .x-char-count { font-size: 11px; color: #888; margin-right: auto; align-self: center; }
+    .x-char-count.over { color: #dc2626; font-weight: 600; }
+    .btn-copy { background: #111; color: #fff; }
+    .btn-reset { background: #f0f0f0; color: #555; }
+    .x-empty { text-align: center; padding: 60px 0; color: #999; font-size: 14px; }
   </style>
 </head>
 <body>
 
 <div class="header">
   <h1>DesAIgn Review Queue</h1>
-  <span class="header-meta"><span id="queue-count">${items.length}</span> items · ${generatedAt}</span>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <label class="header-meta" style="display:flex;align-items:center;gap:8px;color:#aaa;">
+      Freshness:
+      <select id="freshness-filter" onchange="applyFreshness()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;">
+        <option value="1">1 day</option>
+        <option value="3">3 days</option>
+        <option value="7" selected>7 days</option>
+        <option value="14">14 days</option>
+        <option value="30">30 days</option>
+        <option value="all">All time</option>
+      </select>
+    </label>
+    <label class="header-meta" style="display:flex;align-items:center;gap:8px;color:#aaa;">
+      Per source:
+      <select id="limit-filter" onchange="applyFreshness()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Max items per channel (YouTube) or per studio">
+        <option value="3">3</option>
+        <option value="5" selected>5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="all">All</option>
+      </select>
+    </label>
+    <button class="btn-select-all" id="select-all-btn" onclick="selectAll()">Select All</button>
+    <span class="header-meta"><span id="queue-count">${items.length}</span> / <span id="queue-total">${items.length}</span> items · ${generatedAt}</span>
+  </div>
 </div>
 
-<div class="container" id="queue">
-  ${
-    items.length === 0
-      ? '<div class="empty">No new items to review.</div>'
-      : items.map(renderCard).join("\n  ")
-  }
+<div class="tabs">
+  <button class="tab active" id="tab-review" onclick="switchTab('review')">Review queue</button>
+  <button class="tab" id="tab-x" onclick="switchTab('x')">X post</button>
 </div>
 
-<div class="run-bar" id="run-bar">
-  <span class="run-bar-summary" id="run-summary"></span>
-  <button class="btn btn-publish" id="run-btn" onclick="runAll()">Run all →</button>
+<div class="tab-panel active" id="panel-review">
+  <div class="container" id="queue">
+    ${
+      items.length === 0
+        ? '<div class="empty">No new items to review.</div>'
+        : items.map(renderCard).join("\n  ")
+    }
+  </div>
+
+  <div class="run-bar" id="run-bar">
+    <span class="run-bar-summary" id="run-summary"></span>
+    <button class="btn btn-publish" id="run-btn" onclick="runAll()">Run all →</button>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-x">
+  <div class="x-container">
+    ${items.length === 0 ? '<div class="x-empty">No collected items yet — run the collector first.</div>' : `
+    <div class="x-preview-card">
+      <h3>X post preview</h3>
+      <div id="x-cover-wrap"></div>
+      <textarea class="x-text" id="x-text" oninput="updateCharCount()"></textarea>
+      <div class="x-actions">
+        <span class="x-char-count" id="x-char-count">0 / 280</span>
+        <button class="btn btn-reset" onclick="rebuildXText()">Reset text</button>
+        <button class="btn btn-copy" onclick="copyXPost()">Copy to clipboard</button>
+      </div>
+    </div>
+
+    <div class="x-card" style="margin-top:16px;">
+      <div class="x-mode-row">
+        <label for="x-mode">Selection:</label>
+        <select id="x-mode" onchange="renderXPanel()">
+          <option value="auto">Auto (newest 2 YouTube + 1 studio)</option>
+          <option value="manual">Manual (pick from list)</option>
+        </select>
+        <span class="x-status" id="x-status"></span>
+      </div>
+      <div id="x-source-list"></div>
+    </div>
+    `}
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
-    <h2>Queue for publishing</h2>
+    <h2>Edit details</h2>
     <img id="modal-thumb" class="modal-thumb" src="" alt="" />
     <form id="approve-form">
       <input type="hidden" id="f-raw-id" />
@@ -296,27 +420,68 @@ function removeCard(id) {
   }, 420);
 }
 
-function openApprove(id) {
-  // If already queued for approval, un-queue on click
+function buildAutoPostData(item) {
+  var category = guessCategory(item.raw_title, item.raw_description);
+  return {
+    title: (item.raw_title || '').trim(),
+    summary: (item.raw_description || '').slice(0, 300).trim(),
+    category: category,
+    thumbnail_url: (item.thumbnail_url || '').trim(),
+    link: item.source_url,
+    source: item.source || 'Unknown',
+  };
+}
+
+// Quick approve: toggle queued state without opening the modal.
+// Uses auto-guessed defaults (same heuristic as Select All).
+function quickApprove(id) {
+  var card = document.getElementById('card-' + id);
+  var btn = document.getElementById('approve-' + id);
+
+  // If already queued for approval, un-queue.
   if (queue[id] && queue[id].action === 'approve') {
     delete queue[id];
-    const card = document.getElementById('card-' + id);
+    autoQueuedIds = autoQueuedIds.filter(function(i) { return i !== id; });
     if (card) card.classList.remove('card-queued');
-    const card2 = document.getElementById('card-' + id);
-    const btn = card2 ? card2.querySelector('.btn-approve') : null;
     if (btn) btn.textContent = '✓ Approve';
     updateRunBar();
     return;
   }
 
+  // If currently rejected, clear that state first.
+  if (queue[id] && queue[id].action === 'reject') {
+    if (card) card.classList.remove('card-rejected');
+    var rejectBtn = document.getElementById('reject-' + id);
+    if (rejectBtn) rejectBtn.textContent = '✕ Reject';
+  }
+
+  var item = ITEMS_MAP[id];
+  if (!item) return;
+  queue[id] = { action: 'approve', postData: buildAutoPostData(item), _auto: true };
+
+  if (card) {
+    card.classList.remove('card-rejected');
+    card.classList.add('card-queued');
+  }
+  if (btn) btn.textContent = '✓ Queued';
+  updateRunBar();
+}
+
+// Details: open the modal to edit fields before queuing (or to edit
+// the values of an already-queued item).
+function openDetails(id) {
   const item = ITEMS_MAP[id];
   if (!item) return;
+  // Pre-fill with existing queued values if they exist, else item defaults.
+  var existing = queue[id] && queue[id].action === 'approve' ? queue[id].postData : null;
   document.getElementById("f-raw-id").value = item.id;
-  document.getElementById("f-link").value = item.source_url;
-  document.getElementById("f-title").value = item.raw_title || "";
-  document.getElementById("f-summary").value = (item.raw_description || "").slice(0, 300);
-  document.getElementById("f-category").value = item.content_type === "case_study" ? "Case Study" : "";
-  document.getElementById("f-thumbnail").value = item.thumbnail_url || "";
+  document.getElementById("f-link").value = existing ? existing.link : item.source_url;
+  document.getElementById("f-title").value = existing ? existing.title : (item.raw_title || "");
+  document.getElementById("f-summary").value = existing ? existing.summary : (item.raw_description || "").slice(0, 300);
+  document.getElementById("f-category").value = existing
+    ? existing.category
+    : (item.content_type === "case_study" ? "Case Study" : guessCategory(item.raw_title, item.raw_description));
+  document.getElementById("f-thumbnail").value = existing ? existing.thumbnail_url : (item.thumbnail_url || "");
   document.getElementById("modal-thumb").src = item.thumbnail_url || "";
   document.getElementById("modal-overlay").classList.add("open");
   setTimeout(function() { document.getElementById("f-title").focus(); }, 50);
@@ -366,12 +531,6 @@ document.getElementById("approve-form").addEventListener("submit", function(e) {
 });
 
 function reject(id) {
-  // Can't reject an item already queued for approval
-  if (queue[id] && queue[id].action === 'approve') {
-    showToast('Remove from publish queue first (click ✓ Queued to undo)', true);
-    return;
-  }
-
   const card = document.getElementById('card-' + id);
   const btn = document.getElementById('reject-' + id);
 
@@ -381,9 +540,15 @@ function reject(id) {
     if (card) card.classList.remove('card-rejected');
     if (btn) btn.textContent = '✕ Reject';
   } else {
-    // Mark for deletion
+    // If currently queued for approval, clear that state first
+    if (queue[id] && queue[id].action === 'approve') {
+      autoQueuedIds = autoQueuedIds.filter(function(i) { return i !== id; });
+      if (card) card.classList.remove('card-queued');
+      const approveBtn = card ? card.querySelector('.btn-approve') : null;
+      if (approveBtn) approveBtn.textContent = '✓ Approve';
+    }
     queue[id] = { action: 'reject' };
-    if (card) card.classList.add('card-rejected');
+    if (card) { card.classList.add('card-rejected'); }
     if (btn) btn.textContent = '↩ Undo';
   }
 
@@ -443,13 +608,117 @@ async function executeApprove(id, postData) {
 }
 
 async function executeReject(id) {
-  const { error } = await sb.from("raw_items").delete().eq("id", id);
+  const { error } = await sb.from("raw_items").update({ status: "rejected" }).eq("id", id);
   if (error) {
-    showToast("Delete failed: " + error.message, true);
+    showToast("Reject failed: " + error.message, true);
     return;
   }
   delete queue[id];
   removeCard(id);
+}
+
+// Image failed to load → auto-reject so the broken card disappears from view.
+const _brokenHandled = {};
+async function autoRejectBroken(id) {
+  if (_brokenHandled[id]) return;
+  _brokenHandled[id] = true;
+  delete queue[id]; // drop any pending approve/reject queue entry
+  try {
+    await sb.from("raw_items").update({
+      status: "rejected",
+      notes: "Auto-rejected: broken thumbnail (404 / load error)",
+    }).eq("id", id);
+  } catch (_) { /* best-effort */ }
+  removeCard(id);
+}
+
+// Keyword-based category guesser — no AI, pure heuristics
+function guessCategory(title, desc) {
+  var text = ((title || '') + ' ' + (desc || '')).toLowerCase();
+
+  // Tutorial: how-to, step-by-step, course, workshop
+  if (/\bhow[\s-]to\b|tutorial|step[\s-]by[\s-]step|\bbeginner\b|\blearn\b|\bguide\b|\bcourse\b|walkthrough|masterclass|workshop|getting[\s-]started|deep[\s-]dive|\bexplained\b|\btips\b|\btricks\b/.test(text)) return 'Tutorial';
+
+  // Case Study: analysis, behind the scenes, retrospective
+  if (/case[\s-]study|redesign|behind[\s-]the[\s-]scenes|how we built|our process|lessons learned|retrospective|postmortem/.test(text)) return 'Case Study';
+
+  // News: hiring, funding, product launches, announcements
+  if (/\bhir(es|ing|ed)\b|rais(es|ed) \$|funding|acqui(res|red|sition)|launch(es|ed)|announc(es|ed)|introduc(es|ed)|new feature|\brelease\b|\bversus\b|\bvs\b|\breport\b/.test(text)) return 'News';
+
+  // UX: user experience, research, accessibility
+  if (/\bux\b|user[\s-]experience|user[\s-]research|usability|accessibility|\ba11y\b|interaction[\s-]design|\bprototype\b|\bwireframe\b|\bpersona\b|journey[\s-]map|information[\s-]architecture/.test(text)) return 'UX';
+
+  // AI Tools: generative AI, specific models/tools
+  if (/\bai\b|chatgpt|midjourney|stable[\s-]diffusion|\bgenerative\b|\bllm\b|\bgpt[\s-]?\d|\bartificial[\s-]intelligence|machine[\s-]learning|\bclaude\b|\bgemini\b|\bcopilot\b|dall[\s-]?e|\bsora\b|\brunway\b|\bflux\b|\bdiffusion\b|\bneural\b/.test(text)) return 'AI Tools';
+
+  // Design: design tools, typography, layout, branding
+  if (/\bdesign\b|\bfigma\b|\badobe\b|typography|typeface|\bcolor\b|\bcolour\b|\blayout\b|\bgrid\b|\bbranding\b|\blogo\b|\bvisual\b|\bgraphic\b|ui[\s-]kit|\bcomponent\b|\bicon\b|illustration|\bmotion\b|\banimation\b/.test(text)) return 'Design';
+
+  // Tool: software, plugins, platforms
+  if (/\btool\b|\bplugin\b|\bextension\b|\bapp\b|\bsoftware\b|\bplatform\b|\bresource\b|\blibrary\b|\bframework\b|\bsdk\b|\bapi\b/.test(text)) return 'Tool';
+
+  return 'Design'; // default fallback
+}
+
+var selectAllActive = false;
+var autoQueuedIds = [];
+
+function selectAll() {
+  var btn = document.getElementById('select-all-btn');
+
+  if (selectAllActive) {
+    // Deselect: remove only auto-queued items
+    autoQueuedIds.forEach(function(id) {
+      if (queue[id] && queue[id]._auto) {
+        delete queue[id];
+        var card = document.getElementById('card-' + id);
+        if (card) card.classList.remove('card-queued');
+        var approveBtn = card ? card.querySelector('.btn-approve') : null;
+        if (approveBtn) approveBtn.textContent = '✓ Approve';
+      }
+    });
+    autoQueuedIds = [];
+    selectAllActive = false;
+    btn.textContent = 'Select All';
+    btn.classList.remove('active');
+    updateRunBar();
+    return;
+  }
+
+  // Select all items not already in queue and not rejected,
+  // and limit to what's currently visible under the freshness/per-source filter.
+  var newIds = [];
+  Object.keys(ITEMS_MAP).forEach(function(id) {
+    if (queue[id]) return; // already manually queued/rejected — skip
+    var item = ITEMS_MAP[id];
+    var card = document.getElementById('card-' + id);
+    if (!card || card.classList.contains('removing')) return;
+    if (card.style.display === 'none') return; // skip filtered-out items
+
+    var category = guessCategory(item.raw_title, item.raw_description);
+    var postData = {
+      title: (item.raw_title || '').trim(),
+      summary: (item.raw_description || '').slice(0, 300).trim(),
+      category: category,
+      thumbnail_url: (item.thumbnail_url || '').trim(),
+      link: item.source_url,
+      source: item.source || 'Unknown',
+    };
+
+    queue[id] = { action: 'approve', postData: postData, _auto: true };
+    card.classList.remove('card-rejected');
+    card.classList.add('card-queued');
+    var approveBtn = card.querySelector('.btn-approve');
+    if (approveBtn) approveBtn.textContent = '✓ Queued';
+    newIds.push(id);
+  });
+
+  autoQueuedIds = newIds;
+  selectAllActive = true;
+  btn.textContent = 'Deselect All';
+  btn.classList.add('active');
+  updateRunBar();
+  showToast('Queued ' + newIds.length + ' items with auto-tags ✓');
 }
 
 async function runAll() {
@@ -472,6 +741,305 @@ async function runAll() {
   if (Object.keys(queue).length === 0) showToast('All done ✓');
   btn.disabled = false;
   btn.textContent = 'Run all →';
+
+  // After clearing the current batch, re-apply the filter so the next set
+  // of items in each per-source bucket becomes visible.
+  setTimeout(function() {
+    selectAllActive = false;
+    var sab = document.getElementById('select-all-btn');
+    if (sab) { sab.textContent = 'Select All'; sab.classList.remove('active'); }
+    autoQueuedIds = [];
+    applyFreshness();
+  }, 500);
+}
+
+/* -------- Freshness filter -------- */
+
+function itemTimestampMs(item) {
+  // Prefer raw_published_at; fall back to created_at (e.g. for studios with no publish date).
+  var t = item.raw_published_at ? Date.parse(item.raw_published_at) : NaN;
+  if (!isFinite(t)) t = item.created_at ? Date.parse(item.created_at) : NaN;
+  return isFinite(t) ? t : 0;
+}
+
+function sourceBucket(item) {
+  // YouTube items group by channel; studio items group by studio name (the source field).
+  if ((item.source || '').toLowerCase() === 'youtube') {
+    var meta = item.metadata || {};
+    return 'yt::' + (meta.channel_url || meta.channel_name || item.raw_author || 'unknown');
+  }
+  return 'studio::' + (item.source || 'unknown');
+}
+
+function applyFreshness() {
+  var sel = document.getElementById('freshness-filter');
+  var lim = document.getElementById('limit-filter');
+  if (!sel || !lim) return;
+  var val = sel.value;
+  var cutoffMs = val === 'all' ? -Infinity : Date.now() - parseInt(val, 10) * 86400000;
+  var perSource = lim.value === 'all' ? Infinity : parseInt(lim.value, 10);
+
+  // Step 1: filter out stale + removed items.
+  var fresh = [];
+  Object.values(ITEMS_MAP).forEach(function(item) {
+    var card = document.getElementById('card-' + item.id);
+    if (!card) return;
+    if (card.classList.contains('removing')) return;
+    var ts = itemTimestampMs(item);
+    if (ts >= cutoffMs) fresh.push({ item: item, card: card, ts: ts });
+    else card.style.display = 'none';
+  });
+
+  // Step 2: bucket by source, sort newest first within each bucket, cap.
+  var buckets = {};
+  fresh.forEach(function(entry) {
+    var key = sourceBucket(entry.item);
+    (buckets[key] = buckets[key] || []).push(entry);
+  });
+
+  var visibleIds = {};
+  Object.keys(buckets).forEach(function(key) {
+    var arr = buckets[key];
+    arr.sort(function(a, b) { return b.ts - a.ts; });
+    arr.forEach(function(entry, idx) {
+      if (idx < perSource) visibleIds[entry.item.id] = true;
+    });
+  });
+
+  // Step 3: apply visibility.
+  var visible = 0;
+  fresh.forEach(function(entry) {
+    var show = !!visibleIds[entry.item.id];
+    entry.card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  remaining = visible;
+  updateCount();
+
+  // Keep the X tab in sync if it's currently rendered.
+  if (document.getElementById('panel-x') && document.getElementById('panel-x').classList.contains('active')) {
+    renderXPanel();
+  }
+
+  var queueDiv = document.getElementById('queue');
+  var existingEmpty = queueDiv.querySelector('.empty.filter-empty');
+  if (visible === 0 && Object.keys(ITEMS_MAP).length > 0) {
+    if (!existingEmpty) {
+      var d = document.createElement('div');
+      d.className = 'empty filter-empty';
+      d.textContent = 'No items in this freshness window. Try widening it ↑';
+      queueDiv.appendChild(d);
+    }
+  } else if (existingEmpty) {
+    existingEmpty.remove();
+  }
+}
+
+// Apply default freshness on initial render so the user sees only fresh items.
+window.addEventListener('DOMContentLoaded', applyFreshness);
+
+/* -------- Tabs + X post builder -------- */
+
+const SITE_URL = "https://desaign-radar.vercel.app";
+const X_HEADER = "Design + AI roundup — this week on DesAIgn Radar";
+const X_FOOTER_PREFIX = "More: ";
+const X_TARGET_YT = 2;
+const X_TARGET_STUDIOS = 1;
+
+const xSelected = {}; // id -> true
+
+function switchTab(name) {
+  document.getElementById('tab-review').classList.toggle('active', name === 'review');
+  document.getElementById('tab-x').classList.toggle('active', name === 'x');
+  document.getElementById('panel-review').classList.toggle('active', name === 'review');
+  document.getElementById('panel-x').classList.toggle('active', name === 'x');
+  if (name === 'x') renderXPanel();
+}
+
+function isYouTube(item) {
+  return (item.source || '').toLowerCase() === 'youtube';
+}
+
+function isStudio(item) {
+  return !isYouTube(item);
+}
+
+function getActiveItems() {
+  // Items still visible in the review queue: not removed via approve/reject
+  // AND not hidden by the freshness filter.
+  return Object.values(ITEMS_MAP).filter(function(it) {
+    var card = document.getElementById('card-' + it.id);
+    if (!card) return false;
+    if (card.classList.contains('removing')) return false;
+    if (card.style.display === 'none') return false;
+    return true;
+  });
+}
+
+function sortNewestFirst(arr) {
+  return arr.slice().sort(function(a, b) {
+    var da = a.raw_published_at ? Date.parse(a.raw_published_at) : 0;
+    var db = b.raw_published_at ? Date.parse(b.raw_published_at) : 0;
+    return db - da;
+  });
+}
+
+function autoPickIds() {
+  var items = getActiveItems();
+  var yt = sortNewestFirst(items.filter(isYouTube)).slice(0, X_TARGET_YT);
+  var st = sortNewestFirst(items.filter(isStudio)).slice(0, X_TARGET_STUDIOS);
+  return yt.concat(st).map(function(i) { return i.id; });
+}
+
+function renderXPanel() {
+  var listEl = document.getElementById('x-source-list');
+  if (!listEl) return; // empty state
+  var mode = document.getElementById('x-mode').value;
+  var items = getActiveItems();
+
+  if (mode === 'auto') {
+    // Reset selection to auto-pick
+    for (var k in xSelected) delete xSelected[k];
+    autoPickIds().forEach(function(id) { xSelected[id] = true; });
+  }
+
+  var yt = sortNewestFirst(items.filter(isYouTube));
+  var st = sortNewestFirst(items.filter(isStudio));
+
+  var html = '';
+  if (yt.length) {
+    html += '<div class="x-source-section"><h3>YouTube · target ' + X_TARGET_YT + '</h3>';
+    yt.forEach(function(it) { html += renderXRow(it, mode); });
+    html += '</div>';
+  }
+  if (st.length) {
+    html += '<div class="x-source-section"><h3>Design Studios · target ' + X_TARGET_STUDIOS + '</h3>';
+    st.forEach(function(it) { html += renderXRow(it, mode); });
+    html += '</div>';
+  }
+  if (!yt.length && !st.length) {
+    html = '<div class="x-empty">No items available.</div>';
+  }
+  listEl.innerHTML = html;
+
+  updateXStatus();
+  rebuildXText();
+}
+
+function renderXRow(item, mode) {
+  var checked = xSelected[item.id] ? 'checked' : '';
+  var disabled = mode === 'auto' ? 'disabled' : '';
+  var date = item.raw_published_at
+    ? new Date(item.raw_published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : '';
+  var thumb = item.thumbnail_url
+    ? '<img class="x-row-thumb" src="' + escAttr(item.thumbnail_url) + '" alt="" loading="lazy" />'
+    : '<div class="x-row-thumb"></div>';
+  return '<label class="x-row ' + (mode === 'auto' ? 'disabled' : '') + '">'
+    + '<input type="checkbox" data-id="' + escAttr(item.id) + '" ' + checked + ' ' + disabled + ' onchange="onXToggle(this)" />'
+    + thumb
+    + '<div class="x-row-info">'
+    +   '<div class="x-row-title">' + escHtml(item.raw_title || '(no title)') + '</div>'
+    +   '<div class="x-row-meta">' + escHtml(item.source || '') + (date ? ' · ' + date : '') + '</div>'
+    + '</div>'
+    + '</label>';
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escAttr(s) {
+  return escHtml(s).replace(/"/g, '&quot;');
+}
+
+function onXToggle(cb) {
+  var id = cb.getAttribute('data-id');
+  if (cb.checked) xSelected[id] = true; else delete xSelected[id];
+  updateXStatus();
+  rebuildXText();
+}
+
+function selectedItemsOrdered() {
+  // Up to 3 newest YouTube + up to 2 newest studios, in that order
+  var items = getActiveItems().filter(function(i) { return xSelected[i.id]; });
+  var yt = sortNewestFirst(items.filter(isYouTube)).slice(0, X_TARGET_YT);
+  var st = sortNewestFirst(items.filter(isStudio)).slice(0, X_TARGET_STUDIOS);
+  return yt.concat(st);
+}
+
+function updateXStatus() {
+  var statusEl = document.getElementById('x-status');
+  if (!statusEl) return;
+  var items = getActiveItems().filter(function(i) { return xSelected[i.id]; });
+  var ytCount = items.filter(isYouTube).length;
+  var stCount = items.filter(isStudio).length;
+  var ytUsed = Math.min(ytCount, X_TARGET_YT);
+  var stUsed = Math.min(stCount, X_TARGET_STUDIOS);
+  var total = ytUsed + stUsed;
+  var over = (ytCount > X_TARGET_YT) || (stCount > X_TARGET_STUDIOS);
+  statusEl.classList.toggle('warn', over);
+  var note = over ? ' (extras ignored)' : '';
+  statusEl.innerHTML = 'Using <strong>' + total + '</strong> · '
+    + ytUsed + '/' + X_TARGET_YT + ' YT · '
+    + stUsed + '/' + X_TARGET_STUDIOS + ' studios' + note;
+}
+
+function buildXText() {
+  var picked = selectedItemsOrdered();
+  if (picked.length === 0) return '';
+  var lines = [X_HEADER, ''];
+  picked.forEach(function(it, idx) {
+    lines.push((idx + 1) + '. ' + (it.raw_title || '(no title)') + ' — ' + it.source_url);
+  });
+  lines.push('');
+  lines.push(X_FOOTER_PREFIX + SITE_URL);
+  return lines.join('\\n');
+}
+
+function rebuildXText() {
+  var ta = document.getElementById('x-text');
+  if (!ta) return;
+  ta.value = buildXText();
+  renderXCover();
+  updateCharCount();
+}
+
+function renderXCover() {
+  var wrap = document.getElementById('x-cover-wrap');
+  if (!wrap) return;
+  var picked = selectedItemsOrdered();
+  var firstWithImage = picked.find(function(p) { return p.thumbnail_url; });
+  if (firstWithImage) {
+    wrap.innerHTML = '<img class="x-preview-cover" src="' + escAttr(firstWithImage.thumbnail_url) + '" alt="" />';
+  } else {
+    wrap.innerHTML = '<div class="x-preview-cover-empty">No cover image — select an item with a thumbnail</div>';
+  }
+}
+
+function updateCharCount() {
+  var ta = document.getElementById('x-text');
+  var el = document.getElementById('x-char-count');
+  if (!ta || !el) return;
+  var n = ta.value.length;
+  el.textContent = n + ' / 280';
+  el.classList.toggle('over', n > 280);
+}
+
+async function copyXPost() {
+  var ta = document.getElementById('x-text');
+  if (!ta || !ta.value.trim()) {
+    showToast('Nothing to copy — pick at least one item', true);
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    showToast('Copied X post ✓');
+  } catch (err) {
+    ta.select();
+    document.execCommand('copy');
+    showToast('Copied X post ✓');
+  }
 }
 <\/script>
 

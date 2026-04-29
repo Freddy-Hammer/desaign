@@ -24,6 +24,18 @@ export default function RootLayout({
           src="https://t.contentsquare.net/uxa/2b523691042fe.js"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-L39CHE00L0"
+          strategy="afterInteractive"
+        />
+        <Script id="ga-config" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-L39CHE00L0');
+          `}
+        </Script>
       </body>
     </html>
   );
