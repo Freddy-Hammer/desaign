@@ -3,7 +3,6 @@ import { supabase } from "@/lib/supabase";
 import type { Post } from "./types/post";
 import { PostImage, getSourceTone, formatDate, isImageFirstPost } from "./components/signal-card";
 import { FilterableGallery } from "./components/filterable-gallery";
-import { AnimatedHeadline } from "./components/animated-headline";
 
 export const revalidate = 0;
 
@@ -64,13 +63,9 @@ export default async function Home() {
               Design + AI news hub
             </span>
             <div className="space-y-5">
-              <AnimatedHeadline
-                phrases={[
-                  "Useful signals for designers working with AI.",
-                  "Fresh ideas for creatives building smarter with AI tools.",
-                ]}
-                className="max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-zinc-950 sm:text-6xl lg:text-[3.7rem]"
-              />
+              <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-zinc-950 sm:text-6xl lg:text-[3.7rem]">
+                Useful signals for designers working with AI.
+              </h1>
               <p className="max-w-xl text-base leading-8 text-zinc-600 sm:text-lg">
                 Curated videos, launches, case studies, tools, essays, and
                 studio notes worth opening before the feed moves on.
