@@ -57,7 +57,7 @@ export default async function Home() {
       </header>
 
       <section className="border-b border-zinc-900/10">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:py-16">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-14 lg:py-16">
           <div className="max-w-2xl space-y-7">
             <span className="inline-flex rounded-full border border-cyan-900/15 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-900">
               Design + AI news hub
@@ -74,43 +74,50 @@ export default async function Home() {
           </div>
 
           {featuredPost && (
-            <article className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] lg:flex lg:h-[420px]">
-              <a href={featuredPost.link} target="_blank" rel="noreferrer" className="block aspect-video shrink-0 lg:aspect-auto lg:h-full lg:w-[54%]">
+            <article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_32px_110px_rgba(15,23,42,0.14)]">
+              <a
+                href={featuredPost.link}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={featuredPost.title}
+                className="relative block aspect-video w-full overflow-hidden bg-zinc-100"
+              >
                 <PostImage
                   imageUrl={featuredPost.thumbnail_url}
                   title={featuredPost.title}
-                  className="h-full w-full"
+                  className="h-full w-full transition duration-500 group-hover:scale-[1.02]"
                 />
+                <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-900 shadow-sm backdrop-blur">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-500"></span>
+                  Featured signal
+                </span>
               </a>
-              <div className="flex min-w-0 flex-1 flex-col justify-between gap-6 overflow-hidden p-7 sm:p-9">
-                <div className="space-y-5 overflow-hidden">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-800">
-                      Featured signal
-                    </span>
-                    <span
-                      className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${getSourceTone(featuredPost.source)}`}
-                    >
-                      {featuredPost.source ?? "Source"}
-                    </span>
-                  </div>
-                  <div className="space-y-3 overflow-hidden">
-                    <a
-                      href={featuredPost.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="line-clamp-2 block text-3xl font-black leading-tight tracking-tight text-zinc-950 transition hover:text-cyan-800 sm:text-4xl"
-                    >
-                      {featuredPost.title}
-                    </a>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-zinc-100 pt-5">
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-800">
+              <div className="space-y-6 p-7 sm:p-9">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${getSourceTone(featuredPost.source)}`}
+                  >
+                    {featuredPost.source ?? "Source"}
+                  </span>
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-800">
                     {featuredPost.category ?? "Design + AI"}
                   </span>
+                </div>
+                <a
+                  href={featuredPost.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-cyan-800 sm:text-[2.4rem]"
+                >
+                  {featuredPost.title}
+                </a>
+                <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
                   <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
                     {formatDate(featuredPost.created_at)}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition group-hover:gap-2.5 group-hover:text-cyan-800">
+                    Open
+                    <span aria-hidden="true">↗</span>
                   </span>
                 </div>
               </div>
