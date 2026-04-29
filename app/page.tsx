@@ -74,7 +74,7 @@ export default async function Home() {
           </div>
 
           {featuredPost && (
-            <article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_32px_110px_rgba(15,23,42,0.14)]">
+            <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_32px_110px_rgba(15,23,42,0.14)]">
               <a
                 href={featuredPost.link}
                 target="_blank"
@@ -92,7 +92,7 @@ export default async function Home() {
                   Featured signal
                 </span>
               </a>
-              <div className="space-y-6 p-7 sm:p-9">
+              <div className="flex flex-1 flex-col gap-6 p-7 sm:p-9">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${getSourceTone(featuredPost.source)}`}
@@ -111,14 +111,19 @@ export default async function Home() {
                 >
                   {featuredPost.title}
                 </a>
-                <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
+                <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
                   <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
                     {formatDate(featuredPost.created_at)}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition group-hover:gap-2.5 group-hover:text-cyan-800">
+                  <a
+                    href={featuredPost.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition hover:gap-2.5 hover:text-cyan-800"
+                  >
                     Open
                     <span aria-hidden="true">↗</span>
-                  </span>
+                  </a>
                 </div>
               </div>
             </article>

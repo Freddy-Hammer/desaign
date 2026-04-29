@@ -109,7 +109,7 @@ export function SignalCard({ post }: { post: Post }) {
   }
 
   return (
-    <article className="group overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-[0_26px_80px_rgba(15,23,42,0.10)]">
       <a href={post.link} target="_blank" rel="noreferrer" className="block">
         <PostImage
           imageUrl={post.thumbnail_url}
@@ -118,7 +118,7 @@ export function SignalCard({ post }: { post: Post }) {
         />
       </a>
 
-      <div className="space-y-5 p-5">
+      <div className="flex flex-1 flex-col gap-5 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${getSourceTone(
@@ -148,9 +148,17 @@ export function SignalCard({ post }: { post: Post }) {
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
+        <div className="mt-auto flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
           <span>{formatDate(post.created_at)}</span>
-          <span>Open link</span>
+          <a
+            href={post.link}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-zinc-950 transition hover:gap-2.5 hover:text-cyan-800"
+          >
+            Open link
+            <span aria-hidden="true">↗</span>
+          </a>
         </div>
       </div>
     </article>
