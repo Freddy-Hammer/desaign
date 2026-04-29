@@ -47,7 +47,11 @@ async function main() {
   const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
   const telegramChannelId = process.env.TELEGRAM_CHANNEL_ID ?? "";
 
-  const html = buildHtml(items ?? [], existingCategories, supabaseUrl, serviceKey, telegramBotToken, telegramChannelId);
+  const contentTypes = Array.from(
+    new Set((items ?? []).map((i: any) => i.content_type).filter(Boolean))
+  ).sort();
+
+  const html = buildHtml(items ?? [], existingCategories, contentTypes, supabaseUrl, serviceKey, telegramBotToken, telegramChannelId);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -118,9 +122,24 @@ function renderCard(item: any): string {
 </div>`;
 }
 
+const CONTENT_TYPE_LABELS: Record<string, string> = {
+  video: "Videos",
+  case_study: "Cases",
+  article: "Articles",
+  image: "Images",
+};
+
+function contentTypeLabel(t: string): string {
+  return (
+    CONTENT_TYPE_LABELS[t] ??
+    t.charAt(0).toUpperCase() + t.slice(1).replace(/_/g, " ") + "s"
+  );
+}
+
 function buildHtml(
   items: any[],
   existingCategories: string[],
+  contentTypes: string[],
   supabaseUrl: string,
   serviceKey: string,
   telegramBotToken: string,
@@ -254,7 +273,7 @@ function buildHtml(
   <div style="display:flex;align-items:center;gap:16px;">
     <label class="header-meta" style="display:flex;align-items:center;gap:8px;color:#aaa;">
       Freshness:
-      <select id="freshness-filter" onchange="applyFreshness()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;">
+      <select id="freshness-filter" onchange="applyFilters()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;">
         <option value="1">1 day</option>
         <option value="3">3 days</option>
         <option value="7" selected>7 days</option>
@@ -265,7 +284,7 @@ function buildHtml(
     </label>
     <label class="header-meta" style="display:flex;align-items:center;gap:8px;color:#aaa;">
       Per source:
-      <select id="limit-filter" onchange="applyFreshness()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Max items per channel (YouTube) or per studio">
+      <select id="limit-filter" onchange="applyFilters()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Max items per channel (YouTube) or per studio">
         <option value="3">3</option>
         <option value="5" selected>5</option>
         <option value="10">10</option>
@@ -273,6 +292,27 @@ function buildHtml(
         <option value="all">All</option>
       </select>
     </label>
+    <label class="header-meta" style="display:flex;align-items:center;gap:8px;color:#aaa;">
+      Sort:
+      <select id="sort-order" onchange="applyFilters()" style="background:#1f1f1f;color:#fff;border:1px solid #333;border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;cursor:pointer;">
+        <option value="newest" selected>Newest first</option>
+        <option value="oldest">Oldest first</option>
+      </select>
+    </label>
+    ${
+      contentTypes.length > 0
+        ? `<div class="header-meta type-filter" style="display:flex;align-items:center;gap:10px;color:#aaa;flex-wrap:wrap;">
+      Show:
+      ${contentTypes
+        .map(
+          (t) => `<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:#ddd;font-size:12px;">
+        <input type="checkbox" class="type-cb" value="${esc(t)}" checked onchange="applyFilters()" style="cursor:pointer;" />${esc(contentTypeLabel(t))}
+      </label>`
+        )
+        .join("")}
+    </div>`
+        : ""
+    }
     <button class="btn-select-all" id="select-all-btn" onclick="selectAll()">Select All</button>
     <span class="header-meta"><span id="queue-count">${items.length}</span> / <span id="queue-total">${items.length}</span> items · ${generatedAt}</span>
   </div>
@@ -749,11 +789,11 @@ async function runAll() {
     var sab = document.getElementById('select-all-btn');
     if (sab) { sab.textContent = 'Select All'; sab.classList.remove('active'); }
     autoQueuedIds = [];
-    applyFreshness();
+    applyFilters();
   }, 500);
 }
 
-/* -------- Freshness filter -------- */
+/* -------- Filters: freshness + per-source + sort + content type -------- */
 
 function itemTimestampMs(item) {
   // Prefer raw_published_at; fall back to created_at (e.g. for studios with no publish date).
@@ -771,50 +811,71 @@ function sourceBucket(item) {
   return 'studio::' + (item.source || 'unknown');
 }
 
-function applyFreshness() {
+function selectedContentTypes() {
+  var cbs = document.querySelectorAll('.type-cb');
+  if (!cbs.length) return null; // no filter UI → allow all
+  var set = {};
+  cbs.forEach(function(cb) { if (cb.checked) set[cb.value] = true; });
+  return set;
+}
+
+function applyFilters() {
   var sel = document.getElementById('freshness-filter');
   var lim = document.getElementById('limit-filter');
+  var sort = document.getElementById('sort-order');
   if (!sel || !lim) return;
   var val = sel.value;
   var cutoffMs = val === 'all' ? -Infinity : Date.now() - parseInt(val, 10) * 86400000;
   var perSource = lim.value === 'all' ? Infinity : parseInt(lim.value, 10);
+  var sortDir = sort && sort.value === 'oldest' ? 1 : -1;
+  var allowedTypes = selectedContentTypes();
 
-  // Step 1: filter out stale + removed items.
+  // Step 1: filter out stale, removed, or type-unchecked items.
   var fresh = [];
   Object.values(ITEMS_MAP).forEach(function(item) {
     var card = document.getElementById('card-' + item.id);
     if (!card) return;
     if (card.classList.contains('removing')) return;
+    if (allowedTypes && item.content_type && !allowedTypes[item.content_type]) {
+      card.style.display = 'none';
+      return;
+    }
     var ts = itemTimestampMs(item);
     if (ts >= cutoffMs) fresh.push({ item: item, card: card, ts: ts });
     else card.style.display = 'none';
   });
 
-  // Step 2: bucket by source, sort newest first within each bucket, cap.
+  // Step 2: bucket by source, sort newest first within bucket, cap to perSource.
   var buckets = {};
   fresh.forEach(function(entry) {
     var key = sourceBucket(entry.item);
     (buckets[key] = buckets[key] || []).push(entry);
   });
 
-  var visibleIds = {};
+  var visible = [];
   Object.keys(buckets).forEach(function(key) {
     var arr = buckets[key];
     arr.sort(function(a, b) { return b.ts - a.ts; });
-    arr.forEach(function(entry, idx) {
-      if (idx < perSource) visibleIds[entry.item.id] = true;
-    });
+    arr.slice(0, perSource).forEach(function(entry) { visible.push(entry); });
   });
 
-  // Step 3: apply visibility.
-  var visible = 0;
+  var visibleIds = {};
+  visible.forEach(function(entry) { visibleIds[entry.item.id] = true; });
+
+  // Step 3: hide non-visible.
   fresh.forEach(function(entry) {
-    var show = !!visibleIds[entry.item.id];
-    entry.card.style.display = show ? '' : 'none';
-    if (show) visible++;
+    if (!visibleIds[entry.item.id]) entry.card.style.display = 'none';
   });
 
-  remaining = visible;
+  // Step 4: sort visible by selected direction and reorder DOM.
+  visible.sort(function(a, b) { return sortDir * (b.ts - a.ts); });
+  var queueDiv = document.getElementById('queue');
+  visible.forEach(function(entry) {
+    entry.card.style.display = '';
+    queueDiv.appendChild(entry.card); // moves the node to the end in order
+  });
+
+  remaining = visible.length;
   updateCount();
 
   // Keep the X tab in sync if it's currently rendered.
@@ -822,9 +883,8 @@ function applyFreshness() {
     renderXPanel();
   }
 
-  var queueDiv = document.getElementById('queue');
   var existingEmpty = queueDiv.querySelector('.empty.filter-empty');
-  if (visible === 0 && Object.keys(ITEMS_MAP).length > 0) {
+  if (visible.length === 0 && Object.keys(ITEMS_MAP).length > 0) {
     if (!existingEmpty) {
       var d = document.createElement('div');
       d.className = 'empty filter-empty';
@@ -837,7 +897,7 @@ function applyFreshness() {
 }
 
 // Apply default freshness on initial render so the user sees only fresh items.
-window.addEventListener('DOMContentLoaded', applyFreshness);
+window.addEventListener('DOMContentLoaded', applyFilters);
 
 /* -------- Tabs + X post builder -------- */
 
