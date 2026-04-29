@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Post } from "../types/post";
 import { isImageFirstPost, SignalCard } from "./signal-card";
 
 type ContentType = "Videos" | "Images" | "Articles";
 
 const CONTENT_TYPES: ContentType[] = ["Videos", "Images", "Articles"];
+const PAGE_SIZE = 12;
 
 function classifyType(post: Post): ContentType {
   const src = post.source?.toLowerCase() ?? "";
@@ -18,6 +19,11 @@ function classifyType(post: Post): ContentType {
 export function FilterableGallery({ posts }: { posts: Post[] }) {
   const [activeTypes, setActiveTypes] = useState<Set<ContentType>>(new Set());
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeTypes, activeTags]);
 
   const availableTags = useMemo(() => {
     const seen = new Set<string>();
@@ -168,10 +174,24 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredPosts.map((post) => (
+            {filteredPosts.slice(0, visibleCount).map((post) => (
               <SignalCard key={post.id} post={post} />
             ))}
           </div>
+
+          {visibleCount < filteredPosts.length && (
+            <div className="mt-10 flex flex-col items-center gap-3">
+              <button
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                className="rounded-full border border-zinc-300 bg-white px-7 py-3 text-xs font-bold uppercase tracking-[0.2em] text-zinc-700 transition hover:border-zinc-500 hover:text-zinc-950"
+              >
+                Load more
+              </button>
+              <p className="text-xs font-medium text-zinc-400">
+                Showing {visibleCount} of {filteredPosts.length}
+              </p>
+            </div>
+          )}
         </section>
       )}
     </>
