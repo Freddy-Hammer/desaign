@@ -424,7 +424,7 @@ function buildBeehiivHtml() {
       if (includeThumbs && p.thumbnail_url) {
         out.push('<p><a href="' + escAttr(p.link) + '"><img src="' + escAttr(p.thumbnail_url) + '" alt="' + escAttr(p.title) + '" style="max-width:100%;border-radius:8px;" /></a></p>');
       }
-      out.push('<p><strong><a href="' + escAttr(p.link) + '">' + escHtml(p.title) + '</a></strong><br />' + escHtml(p.source || '') + (p.category ? ' · ' + escHtml(p.category) : '') + '</p>');
+      out.push('<p style="margin-bottom:36px;"><strong><a href="' + escAttr(p.link) + '">' + escHtml(p.title) + '</a></strong><br />' + escHtml(p.source || '') + (p.category ? ' · ' + escHtml(p.category) : '') + '</p>');
     });
     out.push('');
     out.push('<hr />');
