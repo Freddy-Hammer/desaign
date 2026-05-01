@@ -26,13 +26,16 @@ npx tsx scripts/report/generate-report.ts  # Generates reports/review.html from 
 # Telegram catch-up (sends posts where telegram_sent=false)
 npx tsx scripts/telegram/send-new-posts.ts --dry-run  # preview without sending
 npx tsx scripts/telegram/send-new-posts.ts            # send all unsent posts
+
+# Newsletter builder (generates a local picker for Beehiiv-ready HTML)
+npx tsx scripts/newsletter/build.ts  # writes reports/newsletter.html
 ```
 
 ## Architecture
 
 ### Two-table data model (Supabase)
 
-**`posts`** — public, RLS-enabled, read by the website via anon key. Clean approved content: `id`, `title`, `link`, `source`, `category`, `summary`, `thumbnail_url`, `created_at`, `telegram_sent`.
+**`posts`** — public, RLS-enabled, read by the website via anon key. Clean approved content: `id`, `title`, `link`, `source`, `category`, `summary`, `thumbnail_url`, `created_at`, `telegram_sent`, `newsletter_status` (null / 'queued' / 'sent' — set by `scripts/newsletter/build.ts` when assembling the Beehiiv weekly).
 
 **`raw_items`** — private staging inbox for automation. Service role key required to write. Full schema in `operating-brief/README.md`. Key fields: `source_url`, `source_id`, `status` (new/approved/rejected), `score`, `tags`, `metadata`.
 
