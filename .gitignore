@@ -42,3 +42,7 @@ next-env.d.ts
 
 # local review reports (contain service role key — never commit)
 /reports/
+
+# playwright MCP scratch files and screenshots from interactive testing
+/.playwright-mcp/
+/*.png
