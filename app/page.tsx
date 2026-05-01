@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import type { Post } from "./types/post";
 import { PostImage, getSourceTone, formatDate, isImageFirstPost } from "./components/signal-card";
 import { FilterableGallery } from "./components/filterable-gallery";
+import { JobsStrip } from "./components/jobs-strip";
 import { SiteHeader } from "./components/site-header";
 import { SiteFooter } from "./components/site-footer";
 
@@ -141,6 +142,8 @@ export default async function Home() {
           </div>
         </div>
       )}
+
+      <JobsStrip />
 
       {!error && posts.length > 1 && (
         <FilterableGallery posts={posts.slice(1)} />
