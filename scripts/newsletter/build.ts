@@ -504,19 +504,71 @@ function buildBeehiivHtml() {
     out.push('<hr />');
   }
 
+  // Site-styled card for posts. Same palette + card chrome as the jobs cards
+  // for visual consistency in the newsletter. Inline CSS, table-based layout
+  // for email-client compatibility.
+  function postCardHtml(p, useThumbs) {
+    var url = escAttr(p.link);
+    var title = escHtml(p.title || '');
+    var source = escHtml((p.source || '').toUpperCase());
+    var category = escHtml((p.category || '').toUpperCase());
+    var date = '';
+    if (p.created_at) {
+      var d = new Date(p.created_at);
+      if (!isNaN(d.getTime())) {
+        date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+      }
+    }
+
+    var fontStack = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif';
+    var titleStyle = 'font-family:' + fontStack + ';font-size:22px;font-weight:900;line-height:1.15;color:#18181b;letter-spacing:-0.01em;text-decoration:none;';
+    var eyebrowStyle = 'font-family:' + fontStack + ';font-size:11px;font-weight:700;letter-spacing:0.2em;color:#475240;';
+    var pillStyle = 'display:inline-block;background:#fafafa;border:1px solid #e4e4e7;border-radius:999px;padding:3px 10px;font-family:' + fontStack + ';font-size:10px;font-weight:700;letter-spacing:0.16em;color:#3f3f46;';
+    var metaStyle = 'font-family:' + fontStack + ';font-size:11px;font-weight:600;letter-spacing:0.14em;color:#71717a;';
+    var openStyle = 'font-family:' + fontStack + ';font-size:11px;font-weight:700;letter-spacing:0.2em;color:#18181b;text-decoration:none;';
+
+    var html = '';
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px 0;border-collapse:separate;">';
+    html +=   '<tr><td style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;overflow:hidden;padding:0;">';
+
+    // Full-bleed image, top corners rounded.
+    if (useThumbs && p.thumbnail_url) {
+      html += '<a href="' + url + '" style="display:block;text-decoration:none;"><img src="' + escAttr(p.thumbnail_url) + '" alt="' + escAttr(p.title) + '" style="display:block;width:100%;height:auto;max-width:100%;border-radius:14px 14px 0 0;" /></a>';
+    }
+
+    // Body in a nested table for padding (more universal than div padding in email).
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td style="padding:22px 24px;">';
+
+    // Eyebrow row: source on left, category pill on right
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;border-collapse:collapse;"><tr>';
+    html +=   '<td align="left" style="' + eyebrowStyle + '">' + source + '</td>';
+    if (category) {
+      html += '<td align="right"><span style="' + pillStyle + '">' + category + '</span></td>';
+    }
+    html += '</tr></table>';
+
+    // Title
+    html += '<div style="margin:0 0 18px 0;"><a href="' + url + '" style="' + titleStyle + '">' + title + '</a></div>';
+
+    // Footer row: date on left, Open ↗ on right
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #f4f4f5;border-collapse:collapse;"><tr>';
+    html +=   '<td align="left" style="padding-top:12px;' + metaStyle + '">' + date + '</td>';
+    html +=   '<td align="right" style="padding-top:12px;"><a href="' + url + '" style="' + openStyle + '">OPEN &#8599;</a></td>';
+    html += '</tr></table>';
+
+    html += '</td></tr></table>';   // close body table
+    html += '</td></tr></table>';   // close outer card
+    return html;
+  }
+
   ['Videos', 'Articles', 'Images'].forEach(function(t) {
     var arr = groups[t];
     if (!arr || !arr.length) return;
     out.push('');
     out.push('<h2>' + labels[t] + '</h2>');
-    arr.forEach(function(p) {
-      out.push('');
-      if (includeThumbs && p.thumbnail_url) {
-        out.push('<p><a href="' + escAttr(p.link) + '"><img src="' + escAttr(p.thumbnail_url) + '" alt="' + escAttr(p.title) + '" style="max-width:100%;border-radius:8px;" /></a></p>');
-      }
-      out.push('<p style="margin-bottom:36px;"><strong><a href="' + escAttr(p.link) + '">' + escHtml(p.title) + '</a></strong><br />' + escHtml(p.source || '') + (p.category ? ' · ' + escHtml(p.category) : '') + '</p>');
-    });
     out.push('');
+    arr.forEach(function(p) { out.push(postCardHtml(p, includeThumbs)); });
+    out.push('<p style="margin-bottom:36px;">&nbsp;</p>');
     out.push('<hr />');
   });
 
