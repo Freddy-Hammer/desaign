@@ -50,9 +50,18 @@ export default async function Home() {
     <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
       <header className="border-b border-zinc-900/10 bg-[#f7f4ef]/90">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-          <Link href="/" className="text-lg font-black tracking-tight">
-            DesAIgn
+          <Link
+            href="/"
+            aria-label="DesAIgn — home"
+            className="flex items-baseline text-2xl font-black tracking-tight sm:text-3xl"
+          >
+            <span>Des</span>
+            <span className="text-cyan-700">AI</span>
+            <span>gn</span>
           </Link>
+          <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 sm:inline">
+            Design + AI · curated
+          </span>
         </div>
       </header>
 
@@ -99,7 +108,7 @@ export default async function Home() {
                   >
                     {featuredPost.source ?? "Source"}
                   </span>
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-800">
+                  <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-700">
                     {featuredPost.category ?? "Design + AI"}
                   </span>
                 </div>
@@ -112,7 +121,7 @@ export default async function Home() {
                   {featuredPost.title}
                 </a>
                 <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-600">
                     {formatDate(featuredPost.created_at)}
                   </span>
                   <a

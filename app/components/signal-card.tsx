@@ -17,21 +17,8 @@ export function formatDate(value: string | null) {
   }).format(date);
 }
 
-export function getSourceTone(source: string | null) {
-  const normalized = source?.toLowerCase() ?? "";
-
-  if (normalized.includes("youtube")) {
-    return "border-red-200 bg-red-50 text-red-700";
-  }
-
-  if (normalized.includes("x") || normalized.includes("twitter")) {
-    return "border-neutral-300 bg-neutral-950 text-white";
-  }
-
-  if (normalized.includes("linkedin")) {
-    return "border-sky-200 bg-sky-50 text-sky-700";
-  }
-
+export function getSourceTone(_source: string | null) {
+  // Single accent system: source pills stay neutral so thumbnails carry color variety.
   return "border-zinc-200 bg-white text-zinc-700";
 }
 
@@ -127,7 +114,7 @@ export function SignalCard({ post }: { post: Post }) {
           >
             {post.source ?? "Source"}
           </span>
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-800">
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-700">
             {post.category ?? "Design + AI"}
           </span>
         </div>
@@ -143,7 +130,7 @@ export function SignalCard({ post }: { post: Post }) {
           </a>
         </div>
 
-        <div className="mt-auto flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
+        <div className="mt-auto flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-zinc-600">
           <span>{formatDate(post.created_at)}</span>
           <a
             href={post.link}
@@ -151,7 +138,7 @@ export function SignalCard({ post }: { post: Post }) {
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 text-zinc-950 transition hover:gap-2.5 hover:text-cyan-800"
           >
-            Open link
+            Open
             <span aria-hidden="true">↗</span>
           </a>
         </div>
