@@ -29,6 +29,9 @@ npx tsx scripts/telegram/send-new-posts.ts            # send all unsent posts
 
 # Newsletter builder (generates a local picker for Beehiiv-ready HTML)
 npx tsx scripts/newsletter/build.ts  # writes reports/newsletter.html
+
+# Manual Instagram add (no IG API, so the user pastes image + post URL)
+npx tsx scripts/instagram/add.ts --image=<url> --link=<url> [--title=<text>] [--author=<handle>]
 ```
 
 ## Architecture

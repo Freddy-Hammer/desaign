@@ -75,6 +75,32 @@ Capture and parse the output for:
 
 Note: studios that require JavaScript rendering will automatically fall back to Playwright. This is expected.
 
+## Step 4.5 — Optional: manually-added Instagram posts
+
+Instagram has no usable public API, so this step is manual: the user pastes one or more posts they've found, and the script inserts them into `raw_items` so they show up in the review queue alongside the auto-collected items.
+
+After Studios finishes (or after YouTube if Studios wasn't selected), ask the user **in plain text** (do NOT use `AskUserQuestion` — the format is too constrained for multi-line URL pairs):
+
+> Any Instagram posts to add this round?
+>
+> If yes, paste image URL + post link for each one. One post per line, in this format:
+>
+> `image=https://...cdninstagram.com/.../img.jpg link=https://www.instagram.com/p/ABC123/`
+>
+> You can also include `title=...` after the link for a short headline. Reply "no" or "skip" to continue without adding any.
+
+For each line the user replies with:
+1. Parse `image=`, `link=`, and (optional) `title=` / `author=` segments. Be tolerant of whitespace and ordering.
+2. Run:
+   ```
+   npx tsx scripts/instagram/add.ts --image=<image> --link=<link> [--title=<title>] [--author=<author>]
+   ```
+3. Capture inserted vs skipped (duplicate) outcomes.
+
+If the user replies "no", "skip", "none", or anything that doesn't match an `image=...link=...` pair, move on without running the script.
+
+Include the Instagram tally in the Step 7 summary (see template below).
+
 ## Step 5 — Generate the review report
 
 ```
@@ -102,11 +128,14 @@ Collection complete
 ────────────────────────────────────
 YouTube          3 new · 0 duplicates · 1 auto-rejected (no image)
 Design Studios   5 new · 37 duplicates · 2 auto-rejected (no image)
+Instagram        2 new · 0 duplicates (manual)
 ────────────────────────────────────
-Total new in raw_items: 8
+Total new in raw_items: 10
 Review queue opened in browser → reports/youtube-review.html
 Tip: switch to the "X post" tab to grab a copy-paste roundup.
 ```
+
+Omit the Instagram line entirely if the user said no/skip in Step 4.5.
 
 If nothing new was found:
 ```
