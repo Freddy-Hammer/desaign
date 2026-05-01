@@ -25,6 +25,8 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Ideogram", platform: "greenhouse", slug: "ideogram" },
   { name: "Hume", platform: "greenhouse", slug: "humeai" },
   { name: "Udio", platform: "greenhouse", slug: "udio" },
+  // IDEO embeds Greenhouse listings via JS on ideo.com/careers — slug "ideo" confirmed by boards-api.
+  { name: "IDEO", platform: "greenhouse", slug: "ideo" },
 
   // --- Lever (verified via api.lever.co) ---
   { name: "Spotify", platform: "lever", slug: "spotify" },
@@ -55,22 +57,13 @@ export const COMPANIES: CompanyConfig[] = [
     todo: "Ashby slug not exposed via API — embedded on framer.com using ashby_jid params. Try slug 'framer' first; if 404, scrape framer.com/careers with Playwright.",
   },
 
-  // --- Custom HTML (design agencies + a few product cos with proprietary ATS) ---
-  { name: "Pentagram", platform: "custom", careersUrl: "https://pentagram.com/careers" },
-  { name: "Buck", platform: "custom", careersUrl: "https://buck.co/careers", todo: "agency uses careers@buck.co email — may have no structured listings" },
-  { name: "Studio Dumbar", platform: "custom", careersUrl: "https://studiodumbar.com/jobs" },
-  { name: "IDEO", platform: "custom", careersUrl: "https://www.ideo.com/careers" },
-  { name: "Instrument", platform: "custom", careersUrl: "https://www.instrument.com/careers" },
-  { name: "Ramotion", platform: "custom", careersUrl: "https://www.ramotion.com/careers", todo: "applications via Google Forms — listings may exist on page" },
-  { name: "Koto", platform: "custom", careersUrl: "https://careers.koto.studio/jobs", todo: "uses Teamtailor — could become a generic Teamtailor scraper later" },
-  { name: "Mucho", platform: "custom", careersUrl: "https://wearemucho.com" },
-  { name: "Base Design", platform: "custom", careersUrl: "https://www.basedesign.com/jobs" },
-  { name: "Manual", platform: "custom", careersUrl: "https://manualcreative.com/careers" },
-  { name: "Athletics", platform: "custom", careersUrl: "https://athleticsnyc.com/careers" },
-  { name: "&Walsh", platform: "custom", careersUrl: "https://andwalsh.com" },
-  { name: "Shopify", platform: "custom", careersUrl: "https://www.shopify.com/careers", todo: "self-hosted ATS — needs Playwright" },
-  { name: "Uizard", platform: "custom", careersUrl: "https://uizard.io/careers", todo: "appears LinkedIn-driven, possibly Workable — verify before scraping" },
-  { name: "DesignStudio", platform: "custom", careersUrl: "https://www.further.group/careers", todo: "rebranded to Further Group — verify before scraping" },
+  // --- Custom HTML scrapers ---
+  // The custom registry lives in scripts/jobs/scrapers/custom.ts — scrapers are
+  // keyed by company.name. Of the original ~15 design-agency targets, only
+  // Pentagram exposes structured listings in static HTML; the rest either
+  // accept email applications, render listings via JS, or have no openings.
+  // Those are skipped with TODOs and feed MANUAL_LISTINGS.md instead.
+  { name: "Pentagram", platform: "custom", careersUrl: "https://www.pentagram.com/careers" },
 
   // --- Skip: blocked, closed, acquired, or unscrapeable ---
   { name: "Apple", platform: "skip", careersUrl: "https://jobs.apple.com", skip: true, todo: "proprietary ATS — manual listings only" },
@@ -85,6 +78,21 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Wolff Olins", platform: "skip", skip: true, todo: "no public careers page" },
   { name: "Cron / Notion Calendar", platform: "skip", skip: true, todo: "folded into Notion's Ashby board" },
   { name: "Headspace", platform: "skip", skip: true, todo: "boards-api 404 despite web slug 'hs' working — needs HTML scrape via Playwright" },
+
+  // Design agencies and product cos with no scrapeable listings — manual entry only.
+  { name: "Buck", platform: "skip", skip: true, todo: "JS-rendered SPA, no static job markup; applications via careers@buck.co. Manual listings only." },
+  { name: "Studio Dumbar", platform: "skip", skip: true, todo: "email-only applications (jobs@studiodumbar.com); page lists no structured roles." },
+  { name: "Instrument", platform: "skip", skip: true, todo: "JS-heavy careers page; no static listings detected. Manual entry only." },
+  { name: "Ramotion", platform: "skip", skip: true, todo: "applications routed through Google Forms; no machine-readable listings." },
+  { name: "Koto", platform: "skip", skip: true, todo: "Teamtailor-hosted at careers.koto.studio. Add a generic Teamtailor scraper later if we add other Teamtailor cos." },
+  { name: "Mucho", platform: "skip", skip: true, todo: "no public structured listings; email-based hiring." },
+  { name: "Base Design", platform: "skip", skip: true, todo: "email-only (jobs-nyc@basedesign.com); no structured listings." },
+  { name: "Manual", platform: "skip", skip: true, todo: "email-only (careers@manualcreative.com)." },
+  { name: "Athletics", platform: "skip", skip: true, todo: "Typeform-driven applications; no structured listings." },
+  { name: "&Walsh", platform: "skip", skip: true, todo: "email-only; no public listings." },
+  { name: "Shopify", platform: "skip", skip: true, todo: "self-hosted careers; JS-rendered, would need Playwright. Manual entry until justified." },
+  { name: "Uizard", platform: "skip", skip: true, todo: "LinkedIn-driven; no public ATS endpoint detected." },
+  { name: "DesignStudio", platform: "skip", skip: true, todo: "rebranded to Further Group; careers at further.group/careers — verify before scraping." },
 ];
 
 export function activeCompanies(): CompanyConfig[] {
