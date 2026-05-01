@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { Post } from "./types/post";
 import { PostImage, getSourceTone, formatDate, isImageFirstPost } from "./components/signal-card";
 import { FilterableGallery } from "./components/filterable-gallery";
+import { SubscribeForm } from "./components/subscribe-form";
 
 export const revalidate = 0;
 
@@ -64,9 +65,7 @@ export default async function Home() {
               Design + AI · curated
             </span>
             <a
-              href="https://desaign-radar.beehiiv.com/"
-              target="_blank"
-              rel="noreferrer"
+              href="#subscribe"
               className="rounded-full bg-zinc-950 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
             >
               Subscribe
@@ -170,6 +169,28 @@ export default async function Home() {
         <FilterableGallery posts={posts.slice(1)} />
       )}
 
+      <section
+        id="subscribe"
+        className="scroll-mt-24 border-t border-zinc-900/10 bg-white"
+      >
+        <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-8 sm:py-20">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">
+            Newsletter
+          </p>
+          <h2 className="mt-3 text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 sm:text-4xl">
+            New signals, in your inbox.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-zinc-600">
+            A short dispatch of curated design + AI work — videos, launches,
+            essays, studio notes — delivered when it&apos;s worth your
+            attention.
+          </p>
+          <div className="mt-8">
+            <SubscribeForm />
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-zinc-900/10 bg-[#25252a] text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div>
@@ -182,9 +203,7 @@ export default async function Home() {
 
           <div className="flex flex-wrap gap-3">
             <a
-              href="https://desaign-radar.beehiiv.com/"
-              target="_blank"
-              rel="noreferrer"
+              href="#subscribe"
               className="rounded-full bg-white px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-brand hover:text-white"
             >
               Subscribe
