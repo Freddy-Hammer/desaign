@@ -124,7 +124,7 @@ export function SignalCard({ post }: { post: Post }) {
             href={post.link}
             target="_blank"
             rel="noreferrer"
-            className="block text-xl font-semibold leading-tight text-zinc-950 transition group-hover:text-cyan-800"
+            className="block text-xl font-semibold leading-tight text-zinc-950 transition group-hover:text-brand-dark"
           >
             {post.title}
           </a>
@@ -136,7 +136,7 @@ export function SignalCard({ post }: { post: Post }) {
             href={post.link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-zinc-950 transition hover:gap-2.5 hover:text-cyan-800"
+            className="inline-flex items-center gap-1.5 text-zinc-950 transition hover:gap-2.5 hover:text-brand-dark"
           >
             Open
             <span aria-hidden="true">↗</span>

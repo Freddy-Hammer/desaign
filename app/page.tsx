@@ -56,7 +56,7 @@ export default async function Home() {
             className="flex items-baseline text-2xl font-black tracking-tight sm:text-3xl"
           >
             <span>Des</span>
-            <span className="text-cyan-700">AI</span>
+            <span className="text-brand">AI</span>
             <span>gn</span>
           </Link>
           <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 sm:inline">
@@ -68,7 +68,7 @@ export default async function Home() {
       <section className="border-b border-zinc-900/10">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-14 lg:py-16">
           <div className="max-w-2xl space-y-7">
-            <span className="inline-flex rounded-full border border-cyan-900/15 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-900">
+            <span className="inline-flex rounded-full border border-brand-deep/20 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-deep">
               Design + AI news hub
             </span>
             <div className="space-y-5">
@@ -96,8 +96,8 @@ export default async function Home() {
                   title={featuredPost.title}
                   className="h-full w-full transition duration-500 group-hover:scale-[1.02]"
                 />
-                <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-900 shadow-sm backdrop-blur">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-500"></span>
+                <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-deep shadow-sm backdrop-blur">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand"></span>
                   Featured signal
                 </span>
               </a>
@@ -116,7 +116,7 @@ export default async function Home() {
                   href={featuredPost.link}
                   target="_blank"
                   rel="noreferrer"
-                  className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-cyan-800 sm:text-[2.4rem]"
+                  className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-brand-dark sm:text-[2.4rem]"
                 >
                   {featuredPost.title}
                 </a>
@@ -128,7 +128,7 @@ export default async function Home() {
                     href={featuredPost.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition hover:gap-2.5 hover:text-cyan-800"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition hover:gap-2.5 hover:text-brand-dark"
                   >
                     Open
                     <span aria-hidden="true">↗</span>

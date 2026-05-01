@@ -327,7 +327,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
     "rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] transition cursor-pointer select-none";
   const pillInactive =
     "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-900";
-  const pillActiveType = "border-cyan-700 bg-cyan-700 text-white";
+  const pillActiveType = "border-brand bg-brand text-white";
   const pillActiveTag = "border-zinc-900 bg-zinc-900 text-white";
   const tagPillBase =
     "rounded-full border px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition cursor-pointer select-none";
@@ -440,7 +440,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
             <div id="latest">
               <div className="mb-10 flex items-end justify-between gap-6">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-800">
+                  <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">
                     Latest finds
                   </p>
                   <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950">
