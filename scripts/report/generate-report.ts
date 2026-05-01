@@ -96,8 +96,6 @@ function renderCard(item: any): string {
         month: "short", day: "numeric", year: "numeric",
       })
     : "";
-  const desc = (item.raw_description ?? "").slice(0, 200);
-
   return `<div class="card" id="card-${item.id}">
   <div class="card-thumb">
     <img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="autoRejectBroken('${item.id}')" />
@@ -111,7 +109,6 @@ function renderCard(item: any): string {
       ${date ? `<span>${date}</span>` : ""}
       ${dur ? `<span class="badge">${dur}</span>` : ""}
     </div>
-    ${desc ? `<div class="card-desc">${esc(desc)}</div>` : ""}
     <div class="card-actions">
       <a class="btn btn-open" href="${esc(item.source_url)}" target="_blank" rel="noopener">Open ↗</a>
       <button class="btn btn-details" onclick="openDetails('${item.id}')">⋯ Details</button>
@@ -379,10 +376,6 @@ function buildHtml(
         <input type="text" id="f-title" required maxlength="200" />
       </div>
       <div class="field">
-        <label>Summary</label>
-        <textarea id="f-summary" maxlength="500" placeholder="Short original summary for the public feed…"></textarea>
-      </div>
-      <div class="field">
         <label>Category</label>
         <input type="text" id="f-category" required list="cat-list" placeholder="e.g. AI Tools" autocomplete="off" />
         <datalist id="cat-list">
@@ -464,7 +457,6 @@ function buildAutoPostData(item) {
   var category = guessCategory(item.raw_title, item.raw_description);
   return {
     title: (item.raw_title || '').trim(),
-    summary: (item.raw_description || '').slice(0, 300).trim(),
     category: category,
     thumbnail_url: (item.thumbnail_url || '').trim(),
     link: item.source_url,
@@ -517,7 +509,6 @@ function openDetails(id) {
   document.getElementById("f-raw-id").value = item.id;
   document.getElementById("f-link").value = existing ? existing.link : item.source_url;
   document.getElementById("f-title").value = existing ? existing.title : (item.raw_title || "");
-  document.getElementById("f-summary").value = existing ? existing.summary : (item.raw_description || "").slice(0, 300);
   document.getElementById("f-category").value = existing
     ? existing.category
     : (item.content_type === "case_study" ? "Case Study" : guessCategory(item.raw_title, item.raw_description));
@@ -546,7 +537,6 @@ document.getElementById("approve-form").addEventListener("submit", function(e) {
   const rawItem = ITEMS_MAP[rawId];
   const postData = {
     title: document.getElementById("f-title").value.trim(),
-    summary: document.getElementById("f-summary").value.trim(),
     category: document.getElementById("f-category").value.trim(),
     thumbnail_url: document.getElementById("f-thumbnail").value.trim(),
     link: document.getElementById("f-link").value,
@@ -602,7 +592,6 @@ async function sendToTelegram(post, postId) {
   const escHtml = function(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); };
   const caption =
     "<b>" + escHtml(post.title) + "</b>" +
-    (post.summary ? "\\n\\n" + escHtml(post.summary) : "") +
     "\\n\\nSource: " + (post.source || "Link") + " · " + (post.category || "Design + AI") +
     "\\nLink: " + post.link +
     "\\n\\nDesAIgn Radar: " + siteUrl;
@@ -738,7 +727,6 @@ function selectAll() {
     var category = guessCategory(item.raw_title, item.raw_description);
     var postData = {
       title: (item.raw_title || '').trim(),
-      summary: (item.raw_description || '').slice(0, 300).trim(),
       category: category,
       thumbnail_url: (item.thumbnail_url || '').trim(),
       link: item.source_url,

@@ -1,0 +1,780 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "DesAIgn" [ref=e5] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e6]:
+        - link "Signals" [ref=e7] [cursor=pointer]:
+          - /url: "#signals"
+        - link "Latest" [ref=e8] [cursor=pointer]:
+          - /url: "#latest"
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Design + AI news hub
+        - generic [ref=e13]:
+          - heading "Useful signals for designers working with AI." [level=1] [ref=e14]
+          - paragraph [ref=e15]: Curated videos, launches, case studies, tools, essays, and studio notes worth opening before the feed moves on.
+      - generic [ref=e16]:
+        - generic [ref=e17]: AI Tools
+        - generic [ref=e18]: UX
+        - generic [ref=e19]: Branding
+        - generic [ref=e20]: Studios
+        - generic [ref=e21]: Courses
+        - generic [ref=e22]: Launches
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - button "All" [ref=e26] [cursor=pointer]
+          - button "Videos" [ref=e27] [cursor=pointer]
+          - button "Images" [ref=e28] [cursor=pointer]
+          - button "Articles" [ref=e29] [cursor=pointer]
+        - generic [ref=e30]:
+          - button "AI Images" [ref=e31] [cursor=pointer]
+          - button "AI Tools" [ref=e32] [cursor=pointer]
+          - button "AI Tutorials" [ref=e33] [cursor=pointer]
+          - button "AI tutorials" [ref=e34] [cursor=pointer]
+          - button "Articles" [ref=e35] [cursor=pointer]
+          - button "Case Study" [ref=e36] [cursor=pointer]
+          - button "Design" [ref=e37] [cursor=pointer]
+          - button "Memes" [ref=e38] [cursor=pointer]
+          - button "News" [ref=e39] [cursor=pointer]
+      - article [ref=e40]:
+        - link "Mini X Deus" [ref=e41] [cursor=pointer]:
+          - /url: https://www.pentagram.com/work/mini-x-deus
+          - img "Mini X Deus" [ref=e42]
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: Featured signal
+              - generic [ref=e47]: Pentagram
+            - link "Mini X Deus" [ref=e49] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/mini-x-deus
+          - generic [ref=e50]:
+            - generic [ref=e51]: Case Study
+            - generic [ref=e52]: Apr 26
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - paragraph [ref=e56]: Latest finds
+          - heading "Curated for the next design sprint" [level=2] [ref=e57]
+        - paragraph [ref=e58]: External links stay with their original creators. DesAIgn adds discovery, context, and rhythm.
+      - generic [ref=e59]:
+        - article [ref=e60]:
+          - link "Projects" [ref=e61] [cursor=pointer]:
+            - /url: https://koto.com/work/projects
+            - img "Projects" [ref=e62]
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: Koto
+              - generic [ref=e66]: Case Study
+            - link "Projects" [ref=e68] [cursor=pointer]:
+              - /url: https://koto.com/work/projects
+            - generic [ref=e69]:
+              - generic [ref=e70]: Apr 26
+              - generic [ref=e71]: Open link
+        - article [ref=e72]:
+          - link "Art House New York" [ref=e73] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/art-house-new-york
+            - img "Art House New York" [ref=e74]
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]: Pentagram
+              - generic [ref=e78]: Case Study
+            - link "Art House New York" [ref=e80] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/art-house-new-york
+            - generic [ref=e81]:
+              - generic [ref=e82]: Apr 26
+              - generic [ref=e83]: Open link
+        - article [ref=e84]:
+          - link "Payz" [ref=e85] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/payz
+            - img "Payz" [ref=e86]
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]: Pentagram
+              - generic [ref=e90]: Case Study
+            - link "Payz" [ref=e92] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/payz
+            - generic [ref=e93]:
+              - generic [ref=e94]: Apr 26
+              - generic [ref=e95]: Open link
+        - article [ref=e96]:
+          - link "London Design Festival 2025" [ref=e97] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/london-design-festival-2025
+            - img "London Design Festival 2025" [ref=e98]
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: Pentagram
+              - generic [ref=e102]: Case Study
+            - link "London Design Festival 2025" [ref=e104] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/london-design-festival-2025
+            - generic [ref=e105]:
+              - generic [ref=e106]: Apr 26
+              - generic [ref=e107]: Open link
+        - article [ref=e108]:
+          - link "Partnerships" [ref=e109] [cursor=pointer]:
+            - /url: https://koto.com/work/partnerships
+            - img "Partnerships" [ref=e110]
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - generic [ref=e113]: Koto
+              - generic [ref=e114]: Case Study
+            - link "Partnerships" [ref=e116] [cursor=pointer]:
+              - /url: https://koto.com/work/partnerships
+            - generic [ref=e117]:
+              - generic [ref=e118]: Apr 26
+              - generic [ref=e119]: Open link
+        - article [ref=e120]:
+          - link "Harry Ransom Center" [ref=e121] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/harry-ransom-center
+            - img "Harry Ransom Center" [ref=e122]
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: Pentagram
+              - generic [ref=e126]: Case Study
+            - link "Harry Ransom Center" [ref=e128] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/harry-ransom-center
+            - generic [ref=e129]:
+              - generic [ref=e130]: Apr 26
+              - generic [ref=e131]: Open link
+        - article [ref=e132]:
+          - link "St Paul S Cathedral" [ref=e133] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/st-paul-s-cathedral
+            - img "St Paul S Cathedral" [ref=e134]
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - generic [ref=e137]: Pentagram
+              - generic [ref=e138]: Case Study
+            - link "St Paul S Cathedral" [ref=e140] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/st-paul-s-cathedral
+            - generic [ref=e141]:
+              - generic [ref=e142]: Apr 26
+              - generic [ref=e143]: Open link
+        - article [ref=e144]:
+          - link "Yzd" [ref=e145] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/yzd
+            - img "Yzd" [ref=e146]
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]: Pentagram
+              - generic [ref=e150]: Case Study
+            - link "Yzd" [ref=e152] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/yzd
+            - generic [ref=e153]:
+              - generic [ref=e154]: Apr 26
+              - generic [ref=e155]: Open link
+        - article [ref=e156]:
+          - link "Mosaic Rooms" [ref=e157] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/mosaic-rooms
+            - img "Mosaic Rooms" [ref=e158]
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - generic [ref=e161]: Pentagram
+              - generic [ref=e162]: Case Study
+            - link "Mosaic Rooms" [ref=e164] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/mosaic-rooms
+            - generic [ref=e165]:
+              - generic [ref=e166]: Apr 26
+              - generic [ref=e167]: Open link
+        - article [ref=e168]:
+          - link "Museo Casa Kahlo" [ref=e169] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/museo-casa-kahlo
+            - img "Museo Casa Kahlo" [ref=e170]
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - generic [ref=e173]: Pentagram
+              - generic [ref=e174]: Case Study
+            - link "Museo Casa Kahlo" [ref=e176] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/museo-casa-kahlo
+            - generic [ref=e177]:
+              - generic [ref=e178]: Apr 26
+              - generic [ref=e179]: Open link
+        - article [ref=e180]:
+          - link "Ctrees" [ref=e181] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/ctrees
+            - img "Ctrees" [ref=e182]
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - generic [ref=e185]: Pentagram
+              - generic [ref=e186]: Case Study
+            - link "Ctrees" [ref=e188] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/ctrees
+            - generic [ref=e189]:
+              - generic [ref=e190]: Apr 26
+              - generic [ref=e191]: Open link
+        - article [ref=e192]:
+          - link "Speak Data" [ref=e193] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/speak-data
+            - img "Speak Data" [ref=e194]
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - generic [ref=e197]: Pentagram
+              - generic [ref=e198]: Case Study
+            - link "Speak Data" [ref=e200] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/speak-data
+            - generic [ref=e201]:
+              - generic [ref=e202]: Apr 26
+              - generic [ref=e203]: Open link
+        - article [ref=e204]:
+          - link "Super Peach" [ref=e205] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/super-peach
+            - img "Super Peach" [ref=e206]
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - generic [ref=e209]: Pentagram
+              - generic [ref=e210]: Case Study
+            - link "Super Peach" [ref=e212] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/super-peach
+            - generic [ref=e213]:
+              - generic [ref=e214]: Apr 26
+              - generic [ref=e215]: Open link
+        - article [ref=e216]:
+          - link "Caligra C100 Developer Terminal" [ref=e217] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/caligra-c100-developer-terminal
+            - img "Caligra C100 Developer Terminal" [ref=e218]
+          - generic [ref=e219]:
+            - generic [ref=e220]:
+              - generic [ref=e221]: Pentagram
+              - generic [ref=e222]: Case Study
+            - link "Caligra C100 Developer Terminal" [ref=e224] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/caligra-c100-developer-terminal
+            - generic [ref=e225]:
+              - generic [ref=e226]: Apr 26
+              - generic [ref=e227]: Open link
+        - article [ref=e228]:
+          - link "Sketching With Stickers" [ref=e229] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/sketching-with-stickers
+            - img "Sketching With Stickers" [ref=e230]
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - generic [ref=e233]: Pentagram
+              - generic [ref=e234]: Case Study
+            - link "Sketching With Stickers" [ref=e236] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/sketching-with-stickers
+            - generic [ref=e237]:
+              - generic [ref=e238]: Apr 26
+              - generic [ref=e239]: Open link
+        - article [ref=e240]:
+          - link "Gender Equality Index Uk" [ref=e241] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/gender-equality-index-uk
+            - img "Gender Equality Index Uk" [ref=e242]
+          - generic [ref=e243]:
+            - generic [ref=e244]:
+              - generic [ref=e245]: Pentagram
+              - generic [ref=e246]: Case Study
+            - link "Gender Equality Index Uk" [ref=e248] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/gender-equality-index-uk
+            - generic [ref=e249]:
+              - generic [ref=e250]: Apr 26
+              - generic [ref=e251]: Open link
+        - article [ref=e252]:
+          - link "Jane Austen S House 250th Anniversary" [ref=e253] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/jane-austen-s-house-250th-anniversary
+            - img "Jane Austen S House 250th Anniversary" [ref=e254]
+          - generic [ref=e255]:
+            - generic [ref=e256]:
+              - generic [ref=e257]: Pentagram
+              - generic [ref=e258]: Case Study
+            - link "Jane Austen S House 250th Anniversary" [ref=e260] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/jane-austen-s-house-250th-anniversary
+            - generic [ref=e261]:
+              - generic [ref=e262]: Apr 26
+              - generic [ref=e263]: Open link
+        - article [ref=e264]:
+          - link "Gates Foundation" [ref=e265] [cursor=pointer]:
+            - /url: https://www.pentagram.com/work/gates-foundation
+            - img "Gates Foundation" [ref=e266]
+          - generic [ref=e267]:
+            - generic [ref=e268]:
+              - generic [ref=e269]: Pentagram
+              - generic [ref=e270]: Case Study
+            - link "Gates Foundation" [ref=e272] [cursor=pointer]:
+              - /url: https://www.pentagram.com/work/gates-foundation
+            - generic [ref=e273]:
+              - generic [ref=e274]: Apr 26
+              - generic [ref=e275]: Open link
+        - article [ref=e276]:
+          - link "The Creative Studio Roadmap" [ref=e277] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=wDOE1AL9G4g
+            - img "The Creative Studio Roadmap" [ref=e278]
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - generic [ref=e281]: YouTube
+              - generic [ref=e282]: Design
+            - generic [ref=e283]:
+              - link "The Creative Studio Roadmap" [ref=e284] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=wDOE1AL9G4g
+              - paragraph [ref=e285]: "Build a studio that gives you freedom, fulfillment and financial security. EVENT 1: Book Launch (9:00am-12:30pm PDT) You've built the portfolio. You've won the awards. You've landed the clients. So why does growing your creative studio still feel like guesswork? Join Matt Essam, author of The Cre"
+            - generic [ref=e286]:
+              - generic [ref=e287]: Apr 26
+              - generic [ref=e288]: Open link
+        - article [ref=e289]:
+          - link "Introducing ChatGPT Images 2.0" [ref=e290] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=sWkGomJ3TLI
+            - img "Introducing ChatGPT Images 2.0" [ref=e291]
+          - generic [ref=e292]:
+            - generic [ref=e293]:
+              - generic [ref=e294]: YouTube
+              - generic [ref=e295]: AI Tools
+            - generic [ref=e296]:
+              - link "Introducing ChatGPT Images 2.0" [ref=e297] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=sWkGomJ3TLI
+              - paragraph [ref=e298]: Gabriel Goh, Kenji Hata, Kiwhan Song, Alex Yu, Boyuan Chen, and Nithanth Kudige with host Sam Altman introduce and demo ChatGPT Images 2.
+            - generic [ref=e299]:
+              - generic [ref=e300]: Apr 26
+              - generic [ref=e301]: Open link
+        - article [ref=e302]:
+          - link "Your Apps Don't Need an API Anymore. Codex Just Proved It." [ref=e303] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=2d9ZmA-4QzU
+            - img "Your Apps Don't Need an API Anymore. Codex Just Proved It." [ref=e304]
+          - generic [ref=e305]:
+            - generic [ref=e306]:
+              - generic [ref=e307]: YouTube
+              - generic [ref=e308]: AI Tools
+            - generic [ref=e309]:
+              - link "Your Apps Don't Need an API Anymore. Codex Just Proved It." [ref=e310] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=2d9ZmA-4QzU
+              - paragraph [ref=e311]: "Full Story w/ Prompt Kit: https://natesnewsletter.substack.com/p/grab-the-workflow-audit-that-tells?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside OpenAI's Codex revamp when they shipped a desktop agent that can drive any Mac app"
+            - generic [ref=e312]:
+              - generic [ref=e313]: Apr 26
+              - generic [ref=e314]: Open link
+        - article [ref=e315]:
+          - link "The Skill You Need To Win Clients That No One Talks About (but should)" [ref=e316] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=-joIfKmSpMQ
+            - img "The Skill You Need To Win Clients That No One Talks About (but should)" [ref=e317]
+          - generic [ref=e318]:
+            - generic [ref=e319]:
+              - generic [ref=e320]: YouTube
+              - generic [ref=e321]: AI Tools
+            - generic [ref=e322]:
+              - link "The Skill You Need To Win Clients That No One Talks About (but should)" [ref=e323] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=-joIfKmSpMQ
+              - paragraph [ref=e324]: "👀 Want more content? Join this channel for exclusive BTS, Workshops & Talks: https://www.youtube.com/channel/UC-b3c7kxa5vU-bnmaROgvog/join 🚀 Ready to level up your content? Join Content Lab — My private community to grow your brand & audience: https://learn.thefutur.com/contentlab 💛 The Futur"
+            - generic [ref=e325]:
+              - generic [ref=e326]: Apr 26
+              - generic [ref=e327]: Open link
+        - article [ref=e328]:
+          - link "Claude Design Isn’t Just Design" [ref=e329] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=B6yDicNiBWA
+            - img "Claude Design Isn’t Just Design" [ref=e330]
+          - generic [ref=e331]:
+            - generic [ref=e332]:
+              - generic [ref=e333]: YouTube
+              - generic [ref=e334]: AI Tools
+            - generic [ref=e335]:
+              - link "Claude Design Isn’t Just Design" [ref=e336] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=B6yDicNiBWA
+              - paragraph [ref=e337]: Claude Design is quickly becoming a powerful AI design tool for UI design, UX design, and product design workflows. In this video, I show how to generate UI, create motion, and build interactive product demos using Claude, something Figma cannot yet do. If you are a product designer or UX/UI design
+            - generic [ref=e338]:
+              - generic [ref=e339]: Apr 26
+              - generic [ref=e340]: Open link
+        - article [ref=e341]:
+          - link "Multilingual & Text Rendering with ChatGPT Images 2.0" [ref=e342] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=B4r4t9eIwNI
+            - img "Multilingual & Text Rendering with ChatGPT Images 2.0" [ref=e343]
+          - generic [ref=e344]:
+            - generic [ref=e345]:
+              - generic [ref=e346]: YouTube
+              - generic [ref=e347]: AI Tools
+            - generic [ref=e348]:
+              - link "Multilingual & Text Rendering with ChatGPT Images 2.0" [ref=e349] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=B4r4t9eIwNI
+              - paragraph [ref=e350]: OpenAI researcher Boyuan Chen demonstrates ChatGPT Images 2.0’s ability to render dense text across multiple languages while keeping stylistic choices intact. While text rendering in Latin-based languages has already been strong, the model has now expanded to handle a much wider range of languages.
+            - generic [ref=e351]:
+              - generic [ref=e352]: Apr 26
+              - generic [ref=e353]: Open link
+        - article [ref=e354]:
+          - link "Karpathy's Wiki vs. Open Brain. One Fails When You Need It Most." [ref=e355] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=dxq7WtWxi44
+            - img "Karpathy's Wiki vs. Open Brain. One Fails When You Need It Most." [ref=e356]
+          - generic [ref=e357]:
+            - generic [ref=e358]:
+              - generic [ref=e359]: YouTube
+              - generic [ref=e360]: News
+            - generic [ref=e361]:
+              - link "Karpathy's Wiki vs. Open Brain. One Fails When You Need It Most." [ref=e362] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=dxq7WtWxi44
+              - paragraph [ref=e363]: "Full Comparison w/ Prompts & Open Brain Wiki: https://natesnewsletter.substack.com/p/your-ai-re-derives-everything-it?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside the memory architecture debate when Andre Karpathy's wiki idea go"
+            - generic [ref=e364]:
+              - generic [ref=e365]: Apr 26
+              - generic [ref=e366]: Open link
+        - article [ref=e367]:
+          - link "Introducing workspace agents in ChatGPT" [ref=e368] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=yyvVUEPSCu0
+            - img "Introducing workspace agents in ChatGPT" [ref=e369]
+          - generic [ref=e370]:
+            - generic [ref=e371]:
+              - generic [ref=e372]: YouTube
+              - generic [ref=e373]: AI Tools
+            - generic [ref=e374]:
+              - link "Introducing workspace agents in ChatGPT" [ref=e375] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=yyvVUEPSCu0
+              - paragraph [ref=e376]: "Introducing workspace agents in ChatGPT—shared agents that can handle complex tasks and long-running workflows across tools and teams. Agents are built to help with the kind of work that takes time, context, and follow-through: coordinating across tools like Slack and Linear, tracking progress, and"
+            - generic [ref=e377]:
+              - generic [ref=e378]: Apr 26
+              - generic [ref=e379]: Open link
+        - article [ref=e380]:
+          - link "Block Laid Off Half Its Company for AI. AI Can't Do the Job." [ref=e381] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=fm6mYqFAM5c
+            - img "Block Laid Off Half Its Company for AI. AI Can't Do the Job." [ref=e382]
+          - generic [ref=e383]:
+            - generic [ref=e384]:
+              - generic [ref=e385]: YouTube
+              - generic [ref=e386]: Case Study
+            - generic [ref=e387]:
+              - link "Block Laid Off Half Its Company for AI. AI Can't Do the Job." [ref=e388] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=fm6mYqFAM5c
+              - paragraph [ref=e389]: "Full Story w/ Prompts: https://natesnewsletter.substack.com/p/executive-briefing-why-your-world?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside the world model everyone is suddenly building? The common story is that software can r"
+            - generic [ref=e390]:
+              - generic [ref=e391]: Apr 26
+              - generic [ref=e392]: Open link
+        - article [ref=e393]:
+          - link "Nobody Knows What You're Worth Anymore | The AI Job Market Reality" [ref=e394] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=-dJ9WrTG6zQ
+            - img "Nobody Knows What You're Worth Anymore | The AI Job Market Reality" [ref=e395]
+          - generic [ref=e396]:
+            - generic [ref=e397]:
+              - generic [ref=e398]: YouTube
+              - generic [ref=e399]: Case Study
+            - generic [ref=e400]:
+              - link "Nobody Knows What You're Worth Anymore | The AI Job Market Reality" [ref=e401] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=-dJ9WrTG6zQ
+              - paragraph [ref=e402]: "Nate's TalentBoard + Full Story: https://natesnewsletter.substack.com/p/your-comprehension-is-worth-more?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside the tech job market when 60,000 confirmed cuts hit in Q1 alone and nobody know"
+            - generic [ref=e403]:
+              - generic [ref=e404]: Apr 26
+              - generic [ref=e405]: Open link
+        - article [ref=e406]:
+          - link "Your Prompts Didn't Change. Opus 4.7 Did." [ref=e407] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=tJB_8mfRgCo
+            - img "Your Prompts Didn't Change. Opus 4.7 Did." [ref=e408]
+          - generic [ref=e409]:
+            - generic [ref=e410]:
+              - generic [ref=e411]: YouTube
+              - generic [ref=e412]: AI Tools
+            - generic [ref=e413]:
+              - link "Your Prompts Didn't Change. Opus 4.7 Did." [ref=e414] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=tJB_8mfRgCo
+              - paragraph [ref=e415]: "Full Breakdown w/ Prompts: https://natesnewsletter.substack.com/p/opus-47-is-smarter-more-literal-and?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside Claude Opus 4.7 when Anthropic ships their smartest model ever into a week where"
+            - generic [ref=e416]:
+              - generic [ref=e417]: Apr 26
+              - generic [ref=e418]: Open link
+        - article [ref=e419]:
+          - link "This is ChatGPT Images 2.0" [ref=e420] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=-7JSa_luc6k
+            - img "This is ChatGPT Images 2.0" [ref=e421]
+          - generic [ref=e422]:
+            - generic [ref=e423]:
+              - generic [ref=e424]: YouTube
+              - generic [ref=e425]: AI Tools
+            - generic [ref=e426]:
+              - link "This is ChatGPT Images 2.0" [ref=e427] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=-7JSa_luc6k
+              - paragraph [ref=e428]: A new era of image generation. Video made with ChatGPT Images.
+            - generic [ref=e429]:
+              - generic [ref=e430]: Apr 26
+              - generic [ref=e431]: Open link
+        - article [ref=e432]:
+          - link "Aspect Ratios & Resolution with ChatGPT Images 2.0" [ref=e433] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=L-RVyipLHQQ
+            - img "Aspect Ratios & Resolution with ChatGPT Images 2.0" [ref=e434]
+          - generic [ref=e435]:
+            - generic [ref=e436]:
+              - generic [ref=e437]: YouTube
+              - generic [ref=e438]: AI Tools
+            - generic [ref=e439]:
+              - link "Aspect Ratios & Resolution with ChatGPT Images 2.0" [ref=e440] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=L-RVyipLHQQ
+              - paragraph [ref=e441]: OpenAI researcher Dibya Bhattacharjee shows the variety of aspect ratios you can prompt with ChatGPT Images 2.0, plus the jump in maximum resolution – from 1k in to now 2k resolution, or even higher when using our API.
+            - generic [ref=e442]:
+              - generic [ref=e443]: Apr 26
+              - generic [ref=e444]: Open link
+        - article [ref=e445]:
+          - link "Slides & Infographics with ChatGPT Images 2.0" [ref=e446] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=B-73tuAHBo8
+            - img "Slides & Infographics with ChatGPT Images 2.0" [ref=e447]
+          - generic [ref=e448]:
+            - generic [ref=e449]:
+              - generic [ref=e450]: YouTube
+              - generic [ref=e451]: AI Tools
+            - generic [ref=e452]:
+              - link "Slides & Infographics with ChatGPT Images 2.0" [ref=e453] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=B-73tuAHBo8
+              - paragraph [ref=e454]: OpenAI researcher Yuguang Yang shows how, with Thinking selected, ChatGPT Images 2.0 can now follow long and complex prompts of over 1,000 words to create detailed, educational infographics. ChatGPT can now also transform uploaded PDFs into complete slides for presentations or polished infographics
+            - generic [ref=e455]:
+              - generic [ref=e456]: Apr 26
+              - generic [ref=e457]: Open link
+        - article [ref=e458]:
+          - link "Instruction Following with ChatGPT Images 2.0" [ref=e459] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=EcP7bzNAEn0
+            - img "Instruction Following with ChatGPT Images 2.0" [ref=e460]
+          - generic [ref=e461]:
+            - generic [ref=e462]:
+              - generic [ref=e463]: YouTube
+              - generic [ref=e464]: AI Tools
+            - generic [ref=e465]:
+              - link "Instruction Following with ChatGPT Images 2.0" [ref=e466] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=EcP7bzNAEn0
+              - paragraph [ref=e467]: OpenAI researcher Jianfeng Wang explains how ChatGPT Images 2.0 can now follow highly detailed instruction in prompts, especially when it comes to spatial layouts and text rendering.
+            - generic [ref=e468]:
+              - generic [ref=e469]: Apr 26
+              - generic [ref=e470]: Open link
+        - article [ref=e471]:
+          - link "Thinking & Intelligence with ChatGPT Images 2.0" [ref=e472] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=JJgwiuu-Axw
+            - img "Thinking & Intelligence with ChatGPT Images 2.0" [ref=e473]
+          - generic [ref=e474]:
+            - generic [ref=e475]:
+              - generic [ref=e476]: YouTube
+              - generic [ref=e477]: AI Tools
+            - generic [ref=e478]:
+              - link "Thinking & Intelligence with ChatGPT Images 2.0" [ref=e479] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=JJgwiuu-Axw
+              - paragraph [ref=e480]: OpenAI researcher Ayaan Haque shows how capable ChatGPT Images 2.0 has become when Thinking is enabled. With the ability to research topics on the web, it can handle open-ended prompts and produce highly complex outputs
+            - generic [ref=e481]:
+              - generic [ref=e482]: Apr 26
+              - generic [ref=e483]: Open link
+        - article [ref=e484]:
+          - link "Claude Design Does In 30 Minutes What Your Team Does In A Sprint" [ref=e485] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=KlPxWaY91rE
+            - img "Claude Design Does In 30 Minutes What Your Team Does In A Sprint" [ref=e486]
+          - generic [ref=e487]:
+            - generic [ref=e488]:
+              - generic [ref=e489]: YouTube
+              - generic [ref=e490]: AI Tools
+            - generic [ref=e491]:
+              - link "Claude Design Does In 30 Minutes What Your Team Does In A Sprint" [ref=e492] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=KlPxWaY91rE
+              - paragraph [ref=e493]: "Full Story w/ Prompt Kit: https://natesnewsletter.substack.com/p/claude-design-replaced-a-week-of?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside the Claude Design launch when everyone reacted with Figma stock crashes but missed th"
+            - generic [ref=e494]:
+              - generic [ref=e495]: Apr 26
+              - generic [ref=e496]: Open link
+        - article [ref=e497]:
+          - link "Introducing GPT-5.5 with NVIDIA's AI Researcher" [ref=e498] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=R3aUYJFVc6w
+            - img "Introducing GPT-5.5 with NVIDIA's AI Researcher" [ref=e499]
+          - generic [ref=e500]:
+            - generic [ref=e501]:
+              - generic [ref=e502]: YouTube
+              - generic [ref=e503]: AI Tools
+            - generic [ref=e504]:
+              - link "Introducing GPT-5.5 with NVIDIA's AI Researcher" [ref=e505] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=R3aUYJFVc6w
+              - paragraph [ref=e506]: While Shaunak Joshi grabbed a snack, GPT-5.5 in Codex refactored his entire code base. GPT-5.5 is our smartest and most intuitive model and NVIDIA AI researchers are seeing a 10x speed improvement in running experiments. “The magic moment was just the fact that it had enough intelligence to come
+            - generic [ref=e507]:
+              - generic [ref=e508]: Apr 26
+              - generic [ref=e509]: Open link
+        - article [ref=e510]:
+          - link "Introducing GPT-5.5 with Perplexity" [ref=e511] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=GNEbX8EvDlg
+            - img "Introducing GPT-5.5 with Perplexity" [ref=e512]
+          - generic [ref=e513]:
+            - generic [ref=e514]:
+              - generic [ref=e515]: YouTube
+              - generic [ref=e516]: AI Tools
+            - generic [ref=e517]:
+              - link "Introducing GPT-5.5 with Perplexity" [ref=e518] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=GNEbX8EvDlg
+              - paragraph [ref=e519]: "“I thought building this internal tool was going to take me days…but with Codex and GPT-5.5, I was able to do it in under an hour.” Denis from Perplexity saw GPT-5.5 cut token usage by 56% while running the same agentic workflows faster and more efficiently. Build with GPT-5.5: https://openai.com"
+            - generic [ref=e520]:
+              - generic [ref=e521]: Apr 26
+              - generic [ref=e522]: Open link
+        - article [ref=e523]:
+          - link "ChatGPT Images Just Replaced Three People on Your Team." [ref=e524] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=brBPsPPyuQM
+            - img "ChatGPT Images Just Replaced Three People on Your Team." [ref=e525]
+          - generic [ref=e526]:
+            - generic [ref=e527]:
+              - generic [ref=e528]: YouTube
+              - generic [ref=e529]: AI Tools
+            - generic [ref=e530]:
+              - link "ChatGPT Images Just Replaced Three People on Your Team." [ref=e531] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=brBPsPPyuQM
+              - paragraph [ref=e532]: "Full Story w/ Prompt Kit: https://natesnewsletter.substack.com/p/what-gpt-image-2-actually-changed?r=1z4sm5&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true ___________________ What's really happening inside AI image generation after GPT-Image 2's 93% win rate? The common story is a better"
+            - generic [ref=e533]:
+              - generic [ref=e534]: Apr 26
+              - generic [ref=e535]: Open link
+        - article [ref=e536]:
+          - link "First impressions of GPT-5.5" [ref=e537] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=nL0lKxZydOk
+            - img "First impressions of GPT-5.5" [ref=e538]
+          - generic [ref=e539]:
+            - generic [ref=e540]:
+              - generic [ref=e541]: YouTube
+              - generic [ref=e542]: AI Tools
+            - generic [ref=e543]:
+              - link "First impressions of GPT-5.5" [ref=e544] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=nL0lKxZydOk
+              - paragraph [ref=e545]: Will Koh, Claire Voh, and Aaron Friel share their first impressions of GPT-5.5
+            - generic [ref=e546]:
+              - generic [ref=e547]: Apr 26
+              - generic [ref=e548]: Open link
+        - article [ref=e549]:
+          - 'link "Workspace agents in ChatGPT: Software review agent" [ref=e550] [cursor=pointer]':
+            - /url: https://www.youtube.com/watch?v=7ZVYmoqqnCg
+            - 'img "Workspace agents in ChatGPT: Software review agent" [ref=e551]'
+          - generic [ref=e552]:
+            - generic [ref=e553]:
+              - generic [ref=e554]: YouTube
+              - generic [ref=e555]: AI Tools
+            - generic [ref=e556]:
+              - 'link "Workspace agents in ChatGPT: Software review agent" [ref=e557] [cursor=pointer]':
+                - /url: https://www.youtube.com/watch?v=7ZVYmoqqnCg
+              - paragraph [ref=e558]: Introducing workspace agents in ChatGPT—Codex-powered agents for teams. Watch a guided walkthrough of an agent that reviews software requests, checks policy, routes approvals, and opens IT tickets with clear next steps.
+            - generic [ref=e559]:
+              - generic [ref=e560]: Apr 26
+              - generic [ref=e561]: Open link
+        - article [ref=e562]:
+          - link "How Anthropic uses Claude in Product Engineering" [ref=e563] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=ma7oe_5h0ag
+            - img "How Anthropic uses Claude in Product Engineering" [ref=e564]
+          - generic [ref=e565]:
+            - generic [ref=e566]:
+              - generic [ref=e567]: YouTube
+              - generic [ref=e568]: AI Tools
+            - generic [ref=e569]:
+              - link "How Anthropic uses Claude in Product Engineering" [ref=e570] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=ma7oe_5h0ag
+              - paragraph [ref=e571]: Product engineers lose hours toggling between tools and tackling subtasks one at a time. Software engineer Chuma Kabaghe shows how she uses Claude Code to onboard onto unfamiliar codebases in minutes, run autonomous testing loops, and manage parallel coding sessions, reducing context switching and s
+            - generic [ref=e572]:
+              - generic [ref=e573]: Apr 26
+              - generic [ref=e574]: Open link
+        - article [ref=e575]:
+          - link "Claude Design is SICK - Real Landing Page Demo" [ref=e576] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=5gllZ-P1PIE
+            - img "Claude Design is SICK - Real Landing Page Demo" [ref=e577]
+          - generic [ref=e578]:
+            - generic [ref=e579]:
+              - generic [ref=e580]: YouTube
+              - generic [ref=e581]: AI Tools
+            - generic [ref=e582]:
+              - link "Claude Design is SICK - Real Landing Page Demo" [ref=e583] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=5gllZ-P1PIE
+              - paragraph [ref=e584]: "Build a SaaS with Claude: https://designcourse.com/app/course/claude-code-ai-saas (Take now) -- Today, I'm showing off a landing page I built with the newly released Claude Design https://claude.ai/design - I'll show the landing page, and then discuss the workflow that I used to achieve it. Let's ge"
+            - generic [ref=e585]:
+              - generic [ref=e586]: Apr 26
+              - generic [ref=e587]: Open link
+        - article [ref=e588]:
+          - link "All your everyday apps, in one conversation" [ref=e589] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=U9jGOz_Lcbo
+            - img "All your everyday apps, in one conversation" [ref=e590]
+          - generic [ref=e591]:
+            - generic [ref=e592]:
+              - generic [ref=e593]: YouTube
+              - generic [ref=e594]: AI Tools
+            - generic [ref=e595]:
+              - link "All your everyday apps, in one conversation" [ref=e596] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=U9jGOz_Lcbo
+              - paragraph [ref=e597]: Claude now also connects to the apps you use outside of work, from travel and food to entertainment and home. Ask for what you need, and Claude pulls in the right app. Available on web, desktop, and mobile across all plans.
+            - generic [ref=e598]:
+              - generic [ref=e599]: Apr 26
+              - generic [ref=e600]: Open link
+        - article [ref=e601]:
+          - link "Why does bias exist in AI models?" [ref=e602] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=RnOWJoHU_NY
+            - img "Why does bias exist in AI models?" [ref=e603]
+          - generic [ref=e604]:
+            - generic [ref=e605]:
+              - generic [ref=e606]: YouTube
+              - generic [ref=e607]: AI Tools
+            - generic [ref=e608]:
+              - link "Why does bias exist in AI models?" [ref=e609] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=RnOWJoHU_NY
+              - paragraph [ref=e610]: Today, we dive into political bias as one type of bias that may exist in models. Learn why it may occur, what we do about it, and tactics you can use to spot this in your conversations.
+            - generic [ref=e611]:
+              - generic [ref=e612]: Apr 26
+              - generic [ref=e613]: Open link
+        - article [ref=e614]:
+          - link "OpenAI Image 2.0 vs Nano Banana Pro - TESTED" [ref=e615] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=1xzmPhQQjwE
+            - img "OpenAI Image 2.0 vs Nano Banana Pro - TESTED" [ref=e616]
+          - generic [ref=e617]:
+            - generic [ref=e618]:
+              - generic [ref=e619]: YouTube
+              - generic [ref=e620]: AI Tools
+            - generic [ref=e621]:
+              - link "OpenAI Image 2.0 vs Nano Banana Pro - TESTED" [ref=e622] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=1xzmPhQQjwE
+              - paragraph [ref=e623]: "Build a SaaS with Claude: https://designcourse.com/app/course/claude-code-ai-saas (Take now) -- Today, we're taking a look at a real-world comparison, in a soon-to-be-released AI landscaping app, between OpenAI's new Image 2.0 model, Gemini 3.1 Flash, and Gemini Nano Banana 2 Pro. INTERESTING INSIGH"
+            - generic [ref=e624]:
+              - generic [ref=e625]: Apr 26
+              - generic [ref=e626]: Open link
+        - article [ref=e627]:
+          - link "Irony" [ref=e628] [cursor=pointer]:
+            - /url: https://www.instagram.com/p/DXlu8sIDb7W/
+            - img "Irony" [ref=e629]
+            - generic [ref=e630]:
+              - generic [ref=e631]: Instagram
+              - generic [ref=e632]: Memes
+        - article [ref=e633]:
+          - 'link "Claude Design: The Complete Guide" [ref=e634] [cursor=pointer]':
+            - /url: https://www.youtube.com/watch?v=eXlSgQmz02E
+            - 'img "Claude Design: The Complete Guide" [ref=e635]'
+          - generic [ref=e636]:
+            - generic [ref=e637]:
+              - generic [ref=e638]: Youtube
+              - generic [ref=e639]: AI Tutorials
+            - 'link "Claude Design: The Complete Guide" [ref=e641] [cursor=pointer]':
+              - /url: https://www.youtube.com/watch?v=eXlSgQmz02E
+            - generic [ref=e642]:
+              - generic [ref=e643]: Apr 26
+              - generic [ref=e644]: Open link
+        - article [ref=e645]:
+          - 'link "Claude Design: Figma Killer or Just Another Design Tool?" [ref=e646] [cursor=pointer]':
+            - /url: https://uxplanet.org/claude-design-figma-killer-or-just-another-design-tool-82f7726693ca
+            - 'img "Claude Design: Figma Killer or Just Another Design Tool?" [ref=e647]'
+          - generic [ref=e648]:
+            - generic [ref=e649]:
+              - generic [ref=e650]: Medium
+              - generic [ref=e651]: Articles
+            - 'link "Claude Design: Figma Killer or Just Another Design Tool?" [ref=e653] [cursor=pointer]':
+              - /url: https://uxplanet.org/claude-design-figma-killer-or-just-another-design-tool-82f7726693ca
+            - generic [ref=e654]:
+              - generic [ref=e655]: Apr 26
+              - generic [ref=e656]: Open link
+        - article [ref=e657]:
+          - 'link "Claude Code Workflows for Designers: UX Design, Design Systems, Figma MCP + More" [ref=e658] [cursor=pointer]':
+            - /url: https://www.youtube.com/watch?v=O1C1APfrU6k&t=35s
+            - 'img "Claude Code Workflows for Designers: UX Design, Design Systems, Figma MCP + More" [ref=e659]'
+          - generic [ref=e660]:
+            - generic [ref=e661]:
+              - generic [ref=e662]: Youtube
+              - generic [ref=e663]: AI tutorials
+            - 'link "Claude Code Workflows for Designers: UX Design, Design Systems, Figma MCP + More" [ref=e665] [cursor=pointer]':
+              - /url: https://www.youtube.com/watch?v=O1C1APfrU6k&t=35s
+            - generic [ref=e666]:
+              - generic [ref=e667]: Apr 26
+              - generic [ref=e668]: Open link
+        - article [ref=e669]:
+          - link "Thirsty AI" [ref=e670] [cursor=pointer]:
+            - /url: https://www.instagram.com/p/DXlqMrejbwy/
+            - img "Thirsty AI" [ref=e671]
+            - generic [ref=e672]:
+              - generic [ref=e673]: Instagram
+              - generic [ref=e674]: AI Images
+        - article [ref=e675]:
+          - link "Introducing Claude Design by Anthropic Labs" [ref=e676] [cursor=pointer]:
+            - /url: https://youtu.be/t_LBECIQQqs?si=Vn5LEPyoTD18ob9r
+            - img "Introducing Claude Design by Anthropic Labs" [ref=e677]
+          - generic [ref=e678]:
+            - generic [ref=e679]:
+              - generic [ref=e680]: YouTube
+              - generic [ref=e681]: AI Tools
+            - generic [ref=e682]:
+              - link "Introducing Claude Design by Anthropic Labs" [ref=e683] [cursor=pointer]:
+                - /url: https://youtu.be/t_LBECIQQqs?si=Vn5LEPyoTD18ob9r
+              - paragraph [ref=e684]: A useful breakdown of the latest AI tools helping designers improve workflow and creativity.
+            - generic [ref=e685]:
+              - generic [ref=e686]: Apr 25
+              - generic [ref=e687]: Open link
+    - generic [ref=e689]:
+      - generic [ref=e690]:
+        - paragraph [ref=e691]: DesAIgn Radar
+        - paragraph [ref=e692]: Design and AI signals, useful links, and occasional strange image experiments from the edge of the feed.
+      - generic [ref=e693]:
+        - link "Instagram" [ref=e694] [cursor=pointer]:
+          - /url: https://www.instagram.com/desaign_radar?igsh=MTQ2NTl4ZzNta28wNA%3D%3D
+        - link "Telegram" [ref=e695] [cursor=pointer]:
+          - /url: https://t.me/DesAIgn_radar
+  - button "Open Next.js Dev Tools" [ref=e701] [cursor=pointer]:
+    - img [ref=e702]
+  - alert [ref=e705]

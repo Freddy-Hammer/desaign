@@ -40,7 +40,7 @@ function diversifyOrder(posts: Post[]): Post[] {
 export default async function Home() {
   const { data, error } = await supabase
     .from("posts")
-    .select("id,title,link,source,category,summary,thumbnail_url,created_at")
+    .select("id,title,link,source,category,thumbnail_url,created_at")
     .order("created_at", { ascending: false });
 
   const posts = diversifyOrder((data ?? []) as Post[]);

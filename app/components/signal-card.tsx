@@ -141,11 +141,6 @@ export function SignalCard({ post }: { post: Post }) {
           >
             {post.title}
           </a>
-          {post.summary && (
-            <p className="line-clamp-3 text-sm leading-6 text-zinc-600">
-              {post.summary}
-            </p>
-          )}
         </div>
 
         <div className="mt-auto flex items-center justify-between border-t border-zinc-100 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">

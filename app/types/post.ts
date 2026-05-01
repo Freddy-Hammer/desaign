@@ -4,7 +4,6 @@ export type Post = {
   link: string;
   source: string | null;
   category: string | null;
-  summary: string | null;
   thumbnail_url: string | null;
   created_at: string | null;
 };
