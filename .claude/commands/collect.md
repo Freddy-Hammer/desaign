@@ -142,6 +142,42 @@ If nothing new was found:
 Collection complete — no new items found. Queue is already up to date.
 ```
 
+## Step 8 — Offer a jobs-cron health check
+
+After printing the Step 7 summary, ask the user **in plain text** (one line):
+
+> Also check the jobs cron? (check / skip)
+
+Wait for their reply.
+
+- On **"check"** (or any affirmative variant — "yes", "y", "go"): run an inline health check.
+  1. Pull the last 10 runs of the `scrape-jobs` workflow:
+     ```
+     gh run list --workflow=scrape-jobs.yml --limit=10 --json databaseId,status,conclusion,createdAt,displayTitle
+     ```
+  2. Query Supabase to confirm data is fresh. The orchestrator writes
+     `last_seen_at = now()` on every upsert, so the max `last_seen_at`
+     across `source='scraper'` rows tells you when the cron last wrote
+     successfully. Use the Supabase MCP / SQL client if available, or
+     run a one-off `npx tsx -e "..."` script that reads the Supabase
+     URL + service-role key from `.env.local` and prints:
+     - max(last_seen_at) where source='scraper'
+     - count of rows where active=true
+     - per-platform breakdown
+  3. Report concisely:
+     - last 10 cron runs all green? yes/no
+     - hours since most recent successful upsert (alarm if > 30h)
+     - active jobs total + per-platform counts
+     - any company that previously had jobs but now has 0 — best-effort,
+       compare per-company kept counts to a freshly-printed baseline if
+       it would take > 1 minute to compute, otherwise skip this bullet
+
+- On **"skip"** (or "no", "n", anything else): end the turn normally.
+
+Do NOT spawn a scheduled remote agent or `/schedule` anything. The user
+declined that path explicitly — this inline check is the only sanctioned
+form of jobs-cron monitoring.
+
 ## Auto-reject behavior (FYI for the user)
 
 Items without a thumbnail image are inserted into `raw_items` with `status='rejected'` and a note (`Auto-rejected: no thumbnail`). They preserve the dedup invariant so the same URL won't be re-collected, but they never appear in the human review queue.
