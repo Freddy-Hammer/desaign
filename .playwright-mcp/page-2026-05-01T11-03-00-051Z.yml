@@ -1,0 +1,262 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "DesAIgn — home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: Des
+        - generic [ref=e7]: AI
+        - generic [ref=e8]: gn
+      - link "Subscribe" [ref=e10] [cursor=pointer]:
+        - /url: /subscribe
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: Design + AI news hub
+        - generic [ref=e15]:
+          - heading "Useful signals for designers working with AI." [level=1] [ref=e16]
+          - paragraph [ref=e17]: Curated videos, launches, case studies, tools, essays, and studio notes worth opening before the feed moves on.
+      - article [ref=e18]:
+        - link "What Codex Unlocks for Virgin Atlantic" [ref=e19] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=eHe2F10TlV4
+          - img "What Codex Unlocks for Virgin Atlantic" [ref=e20]
+          - generic [ref=e21]: Featured signal
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]: YouTube
+            - generic [ref=e26]: News
+          - link "What Codex Unlocks for Virgin Atlantic" [ref=e27] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=eHe2F10TlV4
+          - generic [ref=e28]:
+            - generic [ref=e29]: Apr 30
+            - link "Open" [ref=e30] [cursor=pointer]:
+              - /url: https://www.youtube.com/watch?v=eHe2F10TlV4
+              - text: Open
+              - generic [ref=e31]: ↗
+    - generic [ref=e34]:
+      - generic [ref=e36]:
+        - button "All" [ref=e37] [cursor=pointer]
+        - button "Videos" [ref=e38] [cursor=pointer]
+        - button "Images" [ref=e39] [cursor=pointer]
+        - button "Articles" [ref=e40] [cursor=pointer]
+        - button "Topics" [ref=e41] [cursor=pointer]:
+          - text: Topics
+          - generic [ref=e42]: ▾
+      - generic [ref=e43]:
+        - generic [ref=e45]:
+          - paragraph [ref=e46]: Latest finds
+          - heading "Curated for the next design sprint" [level=2] [ref=e47]
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]: "30"
+            - generic [ref=e51]:
+              - paragraph [ref=e52]: Thursday
+              - paragraph [ref=e53]: APRIL
+          - generic [ref=e54]:
+            - article [ref=e55]:
+              - link "Green Wood Cemetery" [ref=e56] [cursor=pointer]:
+                - /url: https://www.pentagram.com/work/green-wood-cemetery
+                - img "Green Wood Cemetery" [ref=e57]
+              - generic [ref=e58]:
+                - generic [ref=e59]:
+                  - generic [ref=e60]: Pentagram
+                  - generic [ref=e61]: Design
+                - link "Green Wood Cemetery" [ref=e63] [cursor=pointer]:
+                  - /url: https://www.pentagram.com/work/green-wood-cemetery
+                - generic [ref=e64]:
+                  - generic [ref=e65]: Apr 30
+                  - link "Open" [ref=e66] [cursor=pointer]:
+                    - /url: https://www.pentagram.com/work/green-wood-cemetery
+                    - text: Open
+                    - generic [ref=e67]: ↗
+            - article [ref=e68]:
+              - link "Find and fix security vulnerabilities with Claude" [ref=e69] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=0SgCiUfoYo8
+                - img "Find and fix security vulnerabilities with Claude" [ref=e70]
+              - generic [ref=e71]:
+                - generic [ref=e72]:
+                  - generic [ref=e73]: YouTube
+                  - generic [ref=e74]: Design
+                - link "Find and fix security vulnerabilities with Claude" [ref=e76] [cursor=pointer]:
+                  - /url: https://www.youtube.com/watch?v=0SgCiUfoYo8
+                - generic [ref=e77]:
+                  - generic [ref=e78]: Apr 30
+                  - link "Open" [ref=e79] [cursor=pointer]:
+                    - /url: https://www.youtube.com/watch?v=0SgCiUfoYo8
+                    - text: Open
+                    - generic [ref=e80]: ↗
+            - article [ref=e81]:
+              - link "NEMO Science Museum" [ref=e82] [cursor=pointer]:
+                - /url: https://studiodumbar.com/work/nemo
+                - img "NEMO Science Museum" [ref=e83]
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - generic [ref=e86]: Studio Dumbar
+                  - generic [ref=e87]: Design
+                - link "NEMO Science Museum" [ref=e89] [cursor=pointer]:
+                  - /url: https://studiodumbar.com/work/nemo
+                - generic [ref=e90]:
+                  - generic [ref=e91]: Apr 30
+                  - link "Open" [ref=e92] [cursor=pointer]:
+                    - /url: https://studiodumbar.com/work/nemo
+                    - text: Open
+                    - generic [ref=e93]: ↗
+            - article [ref=e94]:
+              - link "The 7 Levels of Claude Code & Content (From Slop to Agentic)" [ref=e95] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=S6YwrVql83U
+                - img "The 7 Levels of Claude Code & Content (From Slop to Agentic)" [ref=e96]
+              - generic [ref=e97]:
+                - generic [ref=e98]:
+                  - generic [ref=e99]: YouTube
+                  - generic [ref=e100]: Design
+                - link "The 7 Levels of Claude Code & Content (From Slop to Agentic)" [ref=e102] [cursor=pointer]:
+                  - /url: https://www.youtube.com/watch?v=S6YwrVql83U
+                - generic [ref=e103]:
+                  - generic [ref=e104]: Apr 30
+                  - link "Open" [ref=e105] [cursor=pointer]:
+                    - /url: https://www.youtube.com/watch?v=S6YwrVql83U
+                    - text: Open
+                    - generic [ref=e106]: ↗
+            - article [ref=e107]:
+              - link "Alzheimer Nederland foundation" [ref=e108] [cursor=pointer]:
+                - /url: https://studiodumbar.com/work/28-alzheimer-nederland
+                - img "Alzheimer Nederland foundation" [ref=e109]
+              - generic [ref=e110]:
+                - generic [ref=e111]:
+                  - generic [ref=e112]: Studio Dumbar
+                  - generic [ref=e113]: Design
+                - link "Alzheimer Nederland foundation" [ref=e115] [cursor=pointer]:
+                  - /url: https://studiodumbar.com/work/28-alzheimer-nederland
+                - generic [ref=e116]:
+                  - generic [ref=e117]: Apr 30
+                  - link "Open" [ref=e118] [cursor=pointer]:
+                    - /url: https://studiodumbar.com/work/28-alzheimer-nederland
+                    - text: Open
+                    - generic [ref=e119]: ↗
+            - article [ref=e120]:
+              - link "Framer Shaders are SICK - How I use them" [ref=e121] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=P6HoG8qWih4
+                - img "Framer Shaders are SICK - How I use them" [ref=e122]
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - generic [ref=e125]: YouTube
+                  - generic [ref=e126]: Design
+                - link "Framer Shaders are SICK - How I use them" [ref=e128] [cursor=pointer]:
+                  - /url: https://www.youtube.com/watch?v=P6HoG8qWih4
+                - generic [ref=e129]:
+                  - generic [ref=e130]: Apr 30
+                  - link "Open" [ref=e131] [cursor=pointer]:
+                    - /url: https://www.youtube.com/watch?v=P6HoG8qWih4
+                    - text: Open
+                    - generic [ref=e132]: ↗
+            - article [ref=e133]:
+              - link "Van Gogh Museum" [ref=e134] [cursor=pointer]:
+                - /url: https://studiodumbar.com/work/24-vincent-van-gogh-museum
+                - img "Van Gogh Museum" [ref=e135]
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - generic [ref=e138]: Studio Dumbar
+                  - generic [ref=e139]: Design
+                - link "Van Gogh Museum" [ref=e141] [cursor=pointer]:
+                  - /url: https://studiodumbar.com/work/24-vincent-van-gogh-museum
+                - generic [ref=e142]:
+                  - generic [ref=e143]: Apr 30
+                  - link "Open" [ref=e144] [cursor=pointer]:
+                    - /url: https://studiodumbar.com/work/24-vincent-van-gogh-museum
+                    - text: Open
+                    - generic [ref=e145]: ↗
+            - article [ref=e146]:
+              - link "Microsoft Is Testing Claude Against Its Own Copilot. Here's Why." [ref=e147] [cursor=pointer]:
+                - /url: https://www.youtube.com/watch?v=JvCtGjrn_N0
+                - img "Microsoft Is Testing Claude Against Its Own Copilot. Here's Why." [ref=e148]
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - generic [ref=e151]: YouTube
+                  - generic [ref=e152]: Design
+                - link "Microsoft Is Testing Claude Against Its Own Copilot. Here's Why." [ref=e154] [cursor=pointer]:
+                  - /url: https://www.youtube.com/watch?v=JvCtGjrn_N0
+                - generic [ref=e155]:
+                  - generic [ref=e156]: Apr 30
+                  - link "Open" [ref=e157] [cursor=pointer]:
+                    - /url: https://www.youtube.com/watch?v=JvCtGjrn_N0
+                    - text: Open
+                    - generic [ref=e158]: ↗
+            - article [ref=e159]:
+              - link "VBMS offshore cabling" [ref=e160] [cursor=pointer]:
+                - /url: https://studiodumbar.com/work/vbms
+                - img "VBMS offshore cabling" [ref=e161]
+              - generic [ref=e162]:
+                - generic [ref=e163]:
+                  - generic [ref=e164]: Studio Dumbar
+                  - generic [ref=e165]: Design
+                - link "VBMS offshore cabling" [ref=e167] [cursor=pointer]:
+                  - /url: https://studiodumbar.com/work/vbms
+                - generic [ref=e168]:
+                  - generic [ref=e169]: Apr 30
+                  - link "Open" [ref=e170] [cursor=pointer]:
+                    - /url: https://studiodumbar.com/work/vbms
+                    - text: Open
+                    - generic [ref=e171]: ↗
+            - article [ref=e172]:
+              - link "Rijksmuseum van Oudheden" [ref=e173] [cursor=pointer]:
+                - /url: https://studiodumbar.com/work/rijksmuseum-van-oudheden
+                - img "Rijksmuseum van Oudheden" [ref=e174]
+              - generic [ref=e175]:
+                - generic [ref=e176]:
+                  - generic [ref=e177]: Studio Dumbar
+                  - generic [ref=e178]: Design
+                - link "Rijksmuseum van Oudheden" [ref=e180] [cursor=pointer]:
+                  - /url: https://studiodumbar.com/work/rijksmuseum-van-oudheden
+                - generic [ref=e181]:
+                  - generic [ref=e182]: Apr 30
+                  - link "Open" [ref=e183] [cursor=pointer]:
+                    - /url: https://studiodumbar.com/work/rijksmuseum-van-oudheden
+                    - text: Open
+                    - generic [ref=e184]: ↗
+            - article [ref=e185]:
+              - link "Blue Moon" [ref=e186] [cursor=pointer]:
+                - /url: https://buck.co/work/blue-moon
+                - img "Blue Moon" [ref=e187]
+              - generic [ref=e188]:
+                - generic [ref=e189]:
+                  - generic [ref=e190]: Buck
+                  - generic [ref=e191]: Design
+                - link "Blue Moon" [ref=e193] [cursor=pointer]:
+                  - /url: https://buck.co/work/blue-moon
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Apr 30
+                  - link "Open" [ref=e196] [cursor=pointer]:
+                    - /url: https://buck.co/work/blue-moon
+                    - text: Open
+                    - generic [ref=e197]: ↗
+            - article [ref=e198]:
+              - link "Nothing, Playground" [ref=e199] [cursor=pointer]:
+                - /url: https://buck.co/work/nothing-playground
+                - img "Nothing, Playground" [ref=e200]
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - generic [ref=e203]: Buck
+                  - generic [ref=e204]: Design
+                - link "Nothing, Playground" [ref=e206] [cursor=pointer]:
+                  - /url: https://buck.co/work/nothing-playground
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Apr 30
+                  - link "Open" [ref=e209] [cursor=pointer]:
+                    - /url: https://buck.co/work/nothing-playground
+                    - text: Open
+                    - generic [ref=e210]: ↗
+        - generic [ref=e211]:
+          - button "Load more" [ref=e212]
+          - paragraph [ref=e213]: Showing 12 of 165
+    - generic [ref=e215]:
+      - generic [ref=e216]:
+        - paragraph [ref=e217]: DesAIgn Radar
+        - paragraph [ref=e218]: Design and AI signals, useful links, and occasional strange image experiments from the edge of the feed.
+      - generic [ref=e219]:
+        - link "Subscribe" [ref=e220] [cursor=pointer]:
+          - /url: /subscribe
+        - link "Instagram" [ref=e221] [cursor=pointer]:
+          - /url: https://www.instagram.com/desaign_radar?igsh=MTQ2NTl4ZzNta28wNA%3D%3D
+        - link "Telegram" [ref=e222] [cursor=pointer]:
+          - /url: https://t.me/DesAIgn_radar
+        - link "X" [ref=e223] [cursor=pointer]:
+          - /url: https://x.com/DesAIgn_Radar
+  - alert [ref=e224]

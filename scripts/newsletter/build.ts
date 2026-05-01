@@ -169,8 +169,8 @@ function buildHtml(posts: any[], supabaseUrl: string, serviceKey: string): strin
     Include thumbnails in HTML
   </label>
   <label>
-    <input type="checkbox" id="hide-queued" />
-    Hide already queued
+    <input type="checkbox" id="picks-only" onchange="applyFilters()" />
+    Show only ★ picks
   </label>
   <div class="spacer"></div>
   <button class="muted" onclick="selectVisible()">Select all visible</button>
@@ -244,11 +244,14 @@ function renderPostRow(p) {
   var date = p.created_at
     ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
-  var queuedBadge = p.newsletter_status === 'queued'
-    ? '<span class="badge" style="background:#fef3c7;color:#92400e;">queued</span>'
+  var isQueued = p.newsletter_status === 'queued';
+  var queuedBadge = isQueued
+    ? '<span class="badge" style="background:#fef3c7;color:#92400e;">★ picked</span>'
     : '';
-  return '<label class="post-row" data-id="' + escAttr(p.id) + '" data-type="' + classifyType(p) + '" data-ts="' + postTimestampMs(p) + '" data-status="' + escAttr(p.newsletter_status || '') + '">'
-    + '<input type="checkbox" data-id="' + escAttr(p.id) + '" onchange="onToggle(this)" />'
+  var rowClass = isQueued ? 'post-row checked' : 'post-row';
+  var checkedAttr = isQueued ? 'checked' : '';
+  return '<label class="' + rowClass + '" data-id="' + escAttr(p.id) + '" data-type="' + classifyType(p) + '" data-ts="' + postTimestampMs(p) + '" data-status="' + escAttr(p.newsletter_status || '') + '">'
+    + '<input type="checkbox" data-id="' + escAttr(p.id) + '" ' + checkedAttr + ' onchange="onToggle(this)" />'
     + (p.thumbnail_url
         ? '<img class="thumb" src="' + escAttr(p.thumbnail_url) + '" alt="" loading="lazy" />'
         : '<div class="thumb"></div>')
@@ -288,6 +291,13 @@ function renderList() {
   });
 
   listEl.innerHTML = html;
+
+  // Pre-populate the selection from items starred during review
+  // (newsletter_status === queued). User can untick before generating.
+  Object.values(POSTS_MAP).forEach(function(p) {
+    if (p.newsletter_status === 'queued') selected.add(p.id);
+  });
+
   applyFilters();
 }
 
@@ -314,7 +324,7 @@ function updateCounts() {
 function applyFilters() {
   var days = document.getElementById('days-filter').value;
   var type = document.getElementById('type-filter').value;
-  var hideQueued = document.getElementById('hide-queued').checked;
+  var picksOnly = document.getElementById('picks-only').checked;
   var cutoff = Date.now() - parseInt(days, 10) * 86400000;
 
   var visible = 0;
@@ -324,7 +334,7 @@ function applyFilters() {
     var rowStatus = row.getAttribute('data-status');
     var match = ts >= cutoff
       && (type === 'all' || rowType === type)
-      && (!hideQueued || rowStatus !== 'queued');
+      && (!picksOnly || rowStatus === 'queued');
     row.classList.toggle('hidden', !match);
     if (match) visible++;
   });

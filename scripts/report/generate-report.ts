@@ -33,6 +33,22 @@ async function main() {
 
   if (error) throw new Error(`Failed to fetch raw_items: ${error.message}`);
 
+  // Probe whether the newsletter_status column exists on posts so the
+  // generated HTML can disable the ★ button if the migration hasn't run.
+  let newsletterEnabled = true;
+  const { error: probeErr } = await sb
+    .from("posts")
+    .select("newsletter_status")
+    .limit(1);
+  if (probeErr && /column.*newsletter_status.*does not exist/i.test(probeErr.message)) {
+    newsletterEnabled = false;
+    console.warn(
+      "  newsletter_status column missing — ★ button disabled.\n" +
+      "  Run this in Supabase → SQL editor to enable:\n" +
+      "    ALTER TABLE posts ADD COLUMN IF NOT EXISTS newsletter_status text DEFAULT NULL;"
+    );
+  }
+
   const { data: existingPosts } = await sb.from("posts").select("category");
   const existingCategories = [
     ...new Set(
@@ -51,7 +67,7 @@ async function main() {
     new Set((items ?? []).map((i: any) => i.content_type).filter(Boolean))
   ).sort();
 
-  const html = buildHtml(items ?? [], existingCategories, contentTypes, supabaseUrl, serviceKey, telegramBotToken, telegramChannelId);
+  const html = buildHtml(items ?? [], existingCategories, contentTypes, supabaseUrl, serviceKey, telegramBotToken, telegramChannelId, newsletterEnabled);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -112,6 +128,7 @@ function renderCard(item: any): string {
     <div class="card-actions">
       <a class="btn btn-open" href="${esc(item.source_url)}" target="_blank" rel="noopener">Open ↗</a>
       <button class="btn btn-details" onclick="openDetails('${item.id}')">⋯ Details</button>
+      <button class="btn btn-newsletter" id="news-${item.id}" onclick="toggleNewsletter('${item.id}')" title="Approve and add to weekly newsletter">☆</button>
       <button class="btn btn-approve" id="approve-${item.id}" onclick="quickApprove('${item.id}')">✓ Approve</button>
       <button class="btn btn-reject" id="reject-${item.id}" onclick="reject('${item.id}')">✕ Reject</button>
     </div>
@@ -141,6 +158,7 @@ function buildHtml(
   serviceKey: string,
   telegramBotToken: string,
   telegramChannelId: string,
+  newsletterEnabled: boolean,
 ): string {
   const generatedAt = new Date().toLocaleString();
   const defaultCategories = ["AI Tools", "Design", "UX", "Tutorial", "Case Study", "News", "Tool"];
@@ -171,6 +189,7 @@ function buildHtml(
     .card.removing { opacity: 0; max-height: 0; margin-bottom: 0; pointer-events: none; }
     .card.card-queued { border-left: 4px solid #16a34a; }
     .card.card-rejected { border-left: 4px solid #dc2626; opacity: 0.55; }
+    .card.card-newsletter { box-shadow: 0 1px 3px rgba(0,0,0,0.07), inset 0 0 0 2px #eab308; }
 
     .card-thumb { flex-shrink: 0; width: 192px; background: #111; }
     .card-thumb img { width: 192px; height: 108px; object-fit: cover; display: block; }
@@ -191,6 +210,8 @@ function buildHtml(
     .btn-details { background: #f0f0f0; color: #555; }
     .btn-approve { background: #16a34a; color: #fff; }
     .btn-reject { background: #dc2626; color: #fff; }
+    .btn-newsletter { background: #f4f4f4; color: #999; min-width: 30px; padding: 6px 9px; font-size: 13px; }
+    .btn-newsletter.active { background: #eab308; color: #fff; }
     .btn-cancel { background: #f0f0f0; color: #555; }
     .btn-publish { background: #111; color: #fff; }
 
@@ -320,6 +341,16 @@ function buildHtml(
   <button class="tab" id="tab-x" onclick="switchTab('x')">X post</button>
 </div>
 
+${
+  newsletterEnabled
+    ? ""
+    : `<div style="background:#fef3c7;border-bottom:1px solid #fcd34d;padding:10px 32px;color:#92400e;font-size:12px;">
+  <strong>★ Newsletter button disabled.</strong>
+  Run this in Supabase → SQL editor to enable:
+  <code style="background:#fff;padding:2px 6px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">ALTER TABLE posts ADD COLUMN IF NOT EXISTS newsletter_status text DEFAULT NULL;</code>
+</div>`
+}
+
 <div class="tab-panel active" id="panel-review">
   <div class="container" id="queue">
     ${
@@ -403,6 +434,7 @@ const SUPABASE_KEY = ${safeJson(serviceKey)};
 const ITEMS_MAP = ${safeJson(itemsMap)};
 const TELEGRAM_BOT_TOKEN = ${safeJson(telegramBotToken)};
 const TELEGRAM_CHANNEL_ID = ${safeJson(telegramChannelId)};
+const NEWSLETTER_ENABLED = ${newsletterEnabled ? "true" : "false"};
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let remaining = ${items.length};
@@ -417,6 +449,7 @@ function updateCount() {
 
 function updateRunBar() {
   const approvals = Object.values(queue).filter(function(q) { return q.action === 'approve'; }).length;
+  const newsletterPicks = Object.values(queue).filter(function(q) { return q.action === 'approve' && q.newsletter; }).length;
   const rejections = Object.values(queue).filter(function(q) { return q.action === 'reject'; }).length;
   const bar = document.getElementById('run-bar');
   const summary = document.getElementById('run-summary');
@@ -426,6 +459,7 @@ function updateRunBar() {
     bar.classList.add('visible');
     const parts = [];
     if (approvals) parts.push('<strong>' + approvals + '</strong> to publish');
+    if (newsletterPicks) parts.push('<strong>★ ' + newsletterPicks + '</strong> for newsletter');
     if (rejections) parts.push('<strong>' + rejections + '</strong> to delete');
     summary.innerHTML = parts.join(' &nbsp;·&nbsp; ');
   }
@@ -474,8 +508,16 @@ function quickApprove(id) {
   if (queue[id] && queue[id].action === 'approve') {
     delete queue[id];
     autoQueuedIds = autoQueuedIds.filter(function(i) { return i !== id; });
-    if (card) card.classList.remove('card-queued');
+    if (card) {
+      card.classList.remove('card-queued');
+      card.classList.remove('card-newsletter');
+    }
     if (btn) btn.textContent = '✓ Approve';
+    var newsBtn = document.getElementById('news-' + id);
+    if (newsBtn) {
+      newsBtn.textContent = '☆';
+      newsBtn.classList.remove('active');
+    }
     updateRunBar();
     return;
   }
@@ -496,6 +538,63 @@ function quickApprove(id) {
     card.classList.add('card-queued');
   }
   if (btn) btn.textContent = '✓ Queued';
+  updateRunBar();
+}
+
+// Newsletter star: auto-approves the item and flags it for the weekly Beehiiv
+// digest. Toggling off only removes the newsletter flag; the approve queue
+// entry stays so the item still publishes to the site/Telegram.
+function toggleNewsletter(id) {
+  if (!NEWSLETTER_ENABLED) {
+    showToast('Newsletter requires the newsletter_status column. See README.', true);
+    return;
+  }
+  var card = document.getElementById('card-' + id);
+  var newsBtn = document.getElementById('news-' + id);
+
+  // If currently rejected, clear that first.
+  if (queue[id] && queue[id].action === 'reject') {
+    if (card) card.classList.remove('card-rejected');
+    var rejectBtn = document.getElementById('reject-' + id);
+    if (rejectBtn) rejectBtn.textContent = '✕ Reject';
+    delete queue[id];
+  }
+
+  // Ensure the item is queued for approval.
+  if (!queue[id] || queue[id].action !== 'approve') {
+    var item = ITEMS_MAP[id];
+    if (!item) return;
+    queue[id] = { action: 'approve', postData: buildAutoPostData(item), _auto: true, newsletter: true };
+    if (card) {
+      card.classList.remove('card-rejected');
+      card.classList.add('card-queued');
+      card.classList.add('card-newsletter');
+    }
+    var approveBtn = document.getElementById('approve-' + id);
+    if (approveBtn) approveBtn.textContent = '✓ Queued';
+    if (newsBtn) {
+      newsBtn.textContent = '★';
+      newsBtn.classList.add('active');
+    }
+    updateRunBar();
+    return;
+  }
+
+  // Already approved — toggle the newsletter flag.
+  queue[id].newsletter = !queue[id].newsletter;
+  if (queue[id].newsletter) {
+    if (card) card.classList.add('card-newsletter');
+    if (newsBtn) {
+      newsBtn.textContent = '★';
+      newsBtn.classList.add('active');
+    }
+  } else {
+    if (card) card.classList.remove('card-newsletter');
+    if (newsBtn) {
+      newsBtn.textContent = '☆';
+      newsBtn.classList.remove('active');
+    }
+  }
   updateRunBar();
 }
 
@@ -573,9 +672,17 @@ function reject(id) {
     // If currently queued for approval, clear that state first
     if (queue[id] && queue[id].action === 'approve') {
       autoQueuedIds = autoQueuedIds.filter(function(i) { return i !== id; });
-      if (card) card.classList.remove('card-queued');
+      if (card) {
+        card.classList.remove('card-queued');
+        card.classList.remove('card-newsletter');
+      }
       const approveBtn = card ? card.querySelector('.btn-approve') : null;
       if (approveBtn) approveBtn.textContent = '✓ Approve';
+      const newsBtn = document.getElementById('news-' + id);
+      if (newsBtn) {
+        newsBtn.textContent = '☆';
+        newsBtn.classList.remove('active');
+      }
     }
     queue[id] = { action: 'reject' };
     if (card) { card.classList.add('card-rejected'); }
@@ -617,9 +724,13 @@ async function sendToTelegram(post, postId) {
   }
 }
 
-async function executeApprove(id, postData) {
+async function executeApprove(id, postData, isNewsletter) {
   try {
-    const { data: inserted, error: ie } = await sb.from("posts").insert([postData]).select("id").single();
+    const finalData = isNewsletter
+      ? Object.assign({}, postData, { newsletter_status: 'queued' })
+      : postData;
+
+    const { data: inserted, error: ie } = await sb.from("posts").insert([finalData]).select("id").single();
     if (ie) throw new Error("Insert to posts failed: " + ie.message);
 
     const { error: ue } = await sb.from("raw_items").update({
@@ -759,7 +870,7 @@ async function runAll() {
   const rejections = entries.filter(function(e) { return e[1].action === 'reject'; });
 
   for (var i = 0; i < approvals.length; i++) {
-    await executeApprove(approvals[i][0], approvals[i][1].postData);
+    await executeApprove(approvals[i][0], approvals[i][1].postData, approvals[i][1].newsletter);
   }
   for (var j = 0; j < rejections.length; j++) {
     await executeReject(rejections[j][0]);
