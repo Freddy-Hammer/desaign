@@ -28,7 +28,8 @@ export const COMPANIES: CompanyConfig[] = [
 
   // --- Lever (verified via api.lever.co) ---
   { name: "Spotify", platform: "lever", slug: "spotify" },
-  { name: "Frog Design", platform: "lever", slug: "frog", todo: "verify slug — research suggested 'frog'" },
+  // Frog Design moved under Capgemini Invent — no public Greenhouse/Lever/Ashby board found.
+  { name: "Frog Design", platform: "skip", skip: true, todo: "Frog rolled into Capgemini Invent; hiring likely via Capgemini Workday — manual listings only" },
 
   // --- Ashby (verified via posting-api / jobs.ashbyhq.com) ---
   { name: "Notion", platform: "ashby", slug: "Notion" }, // capitalized slug
