@@ -520,24 +520,70 @@ function buildBeehiivHtml() {
     out.push('<hr />');
   });
 
-  // Jobs section — added after the regular post groups.
+  // Jobs section — site-styled cards with inline CSS for email clients.
+  // Layout uses tables (most universally rendered) and the sage-green brand
+  // palette from app/globals.css: brand #758666, brand-deep #475240.
   var jobsArr = [];
   selectedJobs.forEach(function(id) {
     var j = JOBS_MAP[id];
     if (j) jobsArr.push(j);
   });
   jobsArr.sort(function(a, b) { return jobTimestampMs(b) - jobTimestampMs(a); });
+
+  function isJobRemote(loc) {
+    return !!loc && /\\bremote\\b|\\bworldwide\\b|\\banywhere\\b/i.test(loc);
+  }
+
+  function jobCardHtml(j) {
+    var url = escAttr(j.url);
+    var company = escHtml(j.company || '').toUpperCase();
+    var title = escHtml(j.title || '');
+    var category = escHtml(j.category || '').toUpperCase();
+    var remote = isJobRemote(j.location);
+    // When remote, strip the standalone "Remote" word from the location text so the
+    // pill and the text don't duplicate. Keeps "San Francisco · Remote" -> "San Francisco".
+    var rawLoc = j.location || '';
+    if (remote) rawLoc = rawLoc.replace(/(^|[\\s,;\\u00b7\\u2022])remote([\\s,;\\u00b7\\u2022]|$)/gi, ' ').replace(/^[\\s,;\\u00b7\\u2022]+|[\\s,;\\u00b7\\u2022]+$/g, '').trim();
+    var loc = escHtml(rawLoc || (remote ? '' : 'Location TBD'));
+
+    var titleStyle = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:900;line-height:1.2;color:#18181b;letter-spacing:-0.01em;';
+    var eyebrowStyle = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;color:#475240;';
+    var pillStyle = 'display:inline-block;background:#fafafa;border:1px solid #e4e4e7;border-radius:999px;padding:3px 10px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.16em;color:#3f3f46;';
+    var metaStyle = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:0.14em;color:#71717a;';
+    var applyStyle = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;color:#18181b;text-decoration:none;';
+    var remoteBadgeStyle = 'display:inline-block;background:#e3e7df;color:#475240;border-radius:999px;padding:2px 8px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.18em;margin-right:8px;vertical-align:middle;';
+
+    var html = '';
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px 0;border-collapse:separate;">';
+    html +=   '<tr><td style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;padding:22px 24px;">';
+    // Eyebrow row: company on left, category pill on right
+    html +=     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;border-collapse:collapse;"><tr>';
+    html +=       '<td align="left" style="' + eyebrowStyle + '">' + company + '</td>';
+    if (category) {
+      html +=     '<td align="right"><span style="' + pillStyle + '">' + category + '</span></td>';
+    }
+    html +=     '</tr></table>';
+    // Title
+    html +=     '<div style="margin:0 0 18px 0;"><a href="' + url + '" style="' + titleStyle + 'text-decoration:none;">' + title + '</a></div>';
+    // Footer row: location + remote pill on left, Apply on right, separated by a top border
+    html +=     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #f4f4f5;border-collapse:collapse;"><tr>';
+    html +=       '<td align="left" style="padding-top:12px;' + metaStyle + '">';
+    if (remote) html += '<span style="' + remoteBadgeStyle + '">REMOTE</span>';
+    if (loc) html += '<span style="text-transform:uppercase;">' + loc + '</span>';
+    html +=       '</td>';
+    html +=       '<td align="right" style="padding-top:12px;"><a href="' + url + '" style="' + applyStyle + '">APPLY &#8599;</a></td>';
+    html +=     '</tr></table>';
+    html +=   '</td></tr>';
+    html += '</table>';
+    return html;
+  }
+
   if (jobsArr.length > 0) {
     out.push('');
     out.push('<h2>💼 Open roles</h2>');
-    jobsArr.forEach(function(j) {
-      out.push('');
-      var line2Parts = [escHtml(j.company)];
-      if (j.location) line2Parts.push(escHtml(j.location));
-      if (j.category) line2Parts.push(escHtml(j.category));
-      out.push('<p style="margin-bottom:36px;"><strong><a href="' + escAttr(j.url) + '">' + escHtml(j.title) + '</a></strong><br />' + line2Parts.join(' · ') + '</p>');
-    });
     out.push('');
+    jobsArr.forEach(function(j) { out.push(jobCardHtml(j)); });
+    out.push('<p style="margin-bottom:36px;">&nbsp;</p>');
     out.push('<hr />');
   }
 
