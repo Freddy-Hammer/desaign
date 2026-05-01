@@ -101,6 +101,22 @@ function ArchiveRail({
   return (
     <aside className="hidden lg:block">
       <div className="sticky top-6">
+        <a
+          href="https://desaign-radar.beehiiv.com/"
+          target="_blank"
+          rel="noreferrer"
+          className="group mb-6 block rounded-lg bg-zinc-950 p-4 transition hover:bg-brand-deep"
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand">
+            Newsletter
+          </p>
+          <p className="mt-1.5 text-sm font-bold leading-snug text-white">
+            New signals, in your inbox.
+          </p>
+          <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/70 transition group-hover:text-white">
+            Subscribe →
+          </p>
+        </a>
         <p className="mb-5 border-b border-zinc-900/15 pb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500">
           The archive
         </p>

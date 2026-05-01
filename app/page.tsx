@@ -59,9 +59,19 @@ export default async function Home() {
             <span className="text-brand">AI</span>
             <span>gn</span>
           </Link>
-          <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 sm:inline">
-            Design + AI · curated
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 md:inline">
+              Design + AI · curated
+            </span>
+            <a
+              href="https://desaign-radar.beehiiv.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-zinc-950 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
+            >
+              Subscribe
+            </a>
+          </div>
         </div>
       </header>
 
@@ -171,6 +181,14 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <a
+              href="https://desaign-radar.beehiiv.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-white px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-brand hover:text-white"
+            >
+              Subscribe
+            </a>
             <a
               href="https://www.instagram.com/desaign_radar?igsh=MTQ2NTl4ZzNta28wNA%3D%3D"
               target="_blank"
