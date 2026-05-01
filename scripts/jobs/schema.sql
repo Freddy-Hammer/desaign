@@ -29,6 +29,12 @@ alter table jobs add column if not exists newsletter_status text default null;
 create index if not exists jobs_newsletter_status_idx on jobs (newsletter_status)
   where newsletter_status is null or newsletter_status = 'queued';
 
+-- Telegram integration: marks a job as already broadcast so the daily
+-- telegram-post script never re-sends. NULL = unsent; timestamp = sent.
+alter table jobs add column if not exists telegram_sent_at timestamptz default null;
+create index if not exists jobs_telegram_unsent_idx on jobs (first_seen_at desc)
+  where telegram_sent_at is null and active = true;
+
 alter table jobs enable row level security;
 
 -- Public read: active jobs only. Frontend uses anon key.
