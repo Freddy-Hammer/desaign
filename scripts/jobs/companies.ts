@@ -21,8 +21,6 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Duolingo", platform: "greenhouse", slug: "duolingo" },
   { name: "Webflow", platform: "greenhouse", slug: "webflow" },
   { name: "MetaLab", platform: "greenhouse", slug: "metalab" },
-  { name: "Runway", platform: "greenhouse", slug: "runway" },
-  { name: "Ideogram", platform: "greenhouse", slug: "ideogram" },
   { name: "Hume", platform: "greenhouse", slug: "humeai" },
   { name: "Udio", platform: "greenhouse", slug: "udio" },
   // IDEO embeds Greenhouse listings via JS on ideo.com/careers — slug "ideo" confirmed by boards-api.
@@ -47,6 +45,9 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Character.ai", platform: "ashby", slug: "character" },
   { name: "Suno", platform: "ashby", slug: "suno" },
   { name: "Browser Company", platform: "ashby", slug: "The Browser Company", todo: "slug has spaces — confirm URL encoding works" },
+  // Migrated off Greenhouse since first verification — both now on Ashby.
+  { name: "Runway", platform: "ashby", slug: "runway" },
+  { name: "Ideogram", platform: "ashby", slug: "ideogram" },
 
   // --- Ashby but slug obfuscated; Framer embeds via ashby_jid params ---
   {
