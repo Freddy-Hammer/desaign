@@ -21,7 +21,7 @@ const DEFAULT_STUDIOS: { name: string; url: string }[] = [
 ];
 // -----------------------------
 
-const DEFAULT_MAX_ITEMS_PER_STUDIO = 50;
+const DEFAULT_MAX_ITEMS_PER_STUDIO = 10;
 
 const INSERT_MODE = process.argv.includes("--insert");
 
@@ -58,11 +58,9 @@ async function main() {
 
   for (const studio of STUDIOS) {
     try {
-      const cases = await scrapeStudio(studio.name, studio.url);
-      const limited = cases.slice(0, MAX_ITEMS_PER_STUDIO);
-      const cap = limited.length < cases.length ? ` (capped at ${MAX_ITEMS_PER_STUDIO})` : "";
-      console.log(`Studio: ${studio.name} → ${limited.length} cases found${cap}`);
-      for (const c of limited) {
+      const cases = await scrapeStudio(studio.name, studio.url, MAX_ITEMS_PER_STUDIO);
+      console.log(`Studio: ${studio.name} → ${cases.length} latest cases`);
+      for (const c of cases) {
         allCandidates.push(mapToRawItem(c));
       }
     } catch (err) {

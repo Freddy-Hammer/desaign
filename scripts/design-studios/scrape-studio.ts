@@ -200,7 +200,7 @@ async function fetchHtmlWithPlaywright(workUrl: string): Promise<string | null> 
   }
 }
 
-export async function scrapeStudio(name: string, workUrl: string): Promise<StudioCase[]> {
+export async function scrapeStudio(name: string, workUrl: string, limit?: number): Promise<StudioCase[]> {
   let html = await fetchHtml(workUrl);
   let $ = html ? load(html) : null;
 
@@ -215,7 +215,8 @@ export async function scrapeStudio(name: string, workUrl: string): Promise<Studi
     return [];
   }
 
-  const cases = extractCases($, workUrl, name);
+  const allCases = extractCases($, workUrl, name);
+  const cases = limit && limit > 0 ? allCases.slice(0, limit) : allCases;
 
   // Resolve missing thumbnails by fetching each project page individually.
   // Handles studios that show videos (not images) in their work listing.
