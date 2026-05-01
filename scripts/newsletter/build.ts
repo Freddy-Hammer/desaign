@@ -536,28 +536,30 @@ function buildBeehiivHtml() {
       html += '<a href="' + url + '" style="display:block;text-decoration:none;"><img src="' + escAttr(p.thumbnail_url) + '" alt="' + escAttr(p.title) + '" style="display:block;width:100%;height:auto;max-width:100%;border-radius:14px 14px 0 0;" /></a>';
     }
 
-    // Body in a nested table for padding (more universal than div padding in email).
-    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td style="padding:22px 24px;">';
+    // Body wrapped in a div for padding. Avoiding nested <table>s here because
+    // Beehiiv's email CSS reset adds visible borders to every <td>; using
+    // <div> + float for the eyebrow/footer rows sidesteps that entirely.
+    html += '<div style="padding:22px 24px;">';
 
     // Eyebrow row: source on left, category pill on right
-    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;border-collapse:collapse;"><tr>';
-    html +=   '<td align="left" style="' + eyebrowStyle + '">' + source + '</td>';
+    html += '<div style="overflow:hidden;margin-bottom:14px;">';
+    html +=   '<span style="float:left;' + eyebrowStyle + '">' + source + '</span>';
     if (category) {
-      html += '<td align="right"><span style="' + pillStyle + '">' + category + '</span></td>';
+      html += '<span style="float:right;' + pillStyle + '">' + category + '</span>';
     }
-    html += '</tr></table>';
+    html += '</div>';
 
     // Title
     html += '<div style="margin:0 0 18px 0;"><a href="' + url + '" style="' + titleStyle + '">' + title + '</a></div>';
 
     // Footer row: date on left, Open ↗ on right
-    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #f4f4f5;border-collapse:collapse;"><tr>';
-    html +=   '<td align="left" style="padding-top:12px;' + metaStyle + '">' + date + '</td>';
-    html +=   '<td align="right" style="padding-top:12px;"><a href="' + url + '" style="' + openStyle + '">OPEN &#8599;</a></td>';
-    html += '</tr></table>';
+    html += '<div style="border-top:1px solid #f4f4f5;padding-top:12px;overflow:hidden;">';
+    html +=   '<span style="float:left;' + metaStyle + '">' + date + '</span>';
+    html +=   '<span style="float:right;"><a href="' + url + '" style="' + openStyle + '">OPEN &#8599;</a></span>';
+    html += '</div>';
 
-    html += '</td></tr></table>';   // close body table
-    html += '</td></tr></table>';   // close outer card
+    html += '</div>';                // close body div
+    html += '</td></tr></table>';    // close outer card
     return html;
   }
 
@@ -609,22 +611,22 @@ function buildBeehiivHtml() {
     html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px 0;border-collapse:separate;">';
     html +=   '<tr><td style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;padding:22px 24px;">';
     // Eyebrow row: company on left, category pill on right
-    html +=     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;border-collapse:collapse;"><tr>';
-    html +=       '<td align="left" style="' + eyebrowStyle + '">' + company + '</td>';
+    html +=     '<div style="overflow:hidden;margin-bottom:14px;">';
+    html +=       '<span style="float:left;' + eyebrowStyle + '">' + company + '</span>';
     if (category) {
-      html +=     '<td align="right"><span style="' + pillStyle + '">' + category + '</span></td>';
+      html +=     '<span style="float:right;' + pillStyle + '">' + category + '</span>';
     }
-    html +=     '</tr></table>';
+    html +=     '</div>';
     // Title
     html +=     '<div style="margin:0 0 18px 0;"><a href="' + url + '" style="' + titleStyle + 'text-decoration:none;">' + title + '</a></div>';
     // Footer row: location + remote pill on left, Apply on right, separated by a top border
-    html +=     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #f4f4f5;border-collapse:collapse;"><tr>';
-    html +=       '<td align="left" style="padding-top:12px;' + metaStyle + '">';
+    html +=     '<div style="border-top:1px solid #f4f4f5;padding-top:12px;overflow:hidden;">';
+    html +=       '<span style="float:left;' + metaStyle + '">';
     if (remote) html += '<span style="' + remoteBadgeStyle + '">REMOTE</span>';
     if (loc) html += '<span style="text-transform:uppercase;">' + loc + '</span>';
-    html +=       '</td>';
-    html +=       '<td align="right" style="padding-top:12px;"><a href="' + url + '" style="' + applyStyle + '">APPLY &#8599;</a></td>';
-    html +=     '</tr></table>';
+    html +=       '</span>';
+    html +=       '<span style="float:right;"><a href="' + url + '" style="' + applyStyle + '">APPLY &#8599;</a></span>';
+    html +=     '</div>';
     html +=   '</td></tr>';
     html += '</table>';
     return html;
