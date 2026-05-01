@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Post } from "./types/post";
 import { PostImage, getSourceTone, formatDate, isImageFirstPost } from "./components/signal-card";
 import { FilterableGallery } from "./components/filterable-gallery";
-import { SubscribeForm } from "./components/subscribe-form";
+import { SiteHeader } from "./components/site-header";
+import { SiteFooter } from "./components/site-footer";
 
 export const revalidate = 0;
 
@@ -49,30 +49,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
-      <header className="border-b border-zinc-900/10 bg-[#f7f4ef]/90">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-          <Link
-            href="/"
-            aria-label="DesAIgn — home"
-            className="flex items-baseline text-2xl font-black tracking-tight sm:text-3xl"
-          >
-            <span>Des</span>
-            <span className="text-brand">AI</span>
-            <span>gn</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 md:inline">
-              Design + AI · curated
-            </span>
-            <a
-              href="#subscribe"
-              className="rounded-full bg-zinc-950 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
-            >
-              Subscribe
-            </a>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="border-b border-zinc-900/10">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-14 lg:py-16">
@@ -169,72 +146,7 @@ export default async function Home() {
         <FilterableGallery posts={posts.slice(1)} />
       )}
 
-      <section
-        id="subscribe"
-        className="scroll-mt-24 border-t border-zinc-900/10 bg-white"
-      >
-        <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-8 sm:py-20">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">
-            Newsletter
-          </p>
-          <h2 className="mt-3 text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 sm:text-4xl">
-            New signals, in your inbox.
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-zinc-600">
-            A short dispatch of curated design + AI work — videos, launches,
-            essays, studio notes — delivered when it&apos;s worth your
-            attention.
-          </p>
-          <div className="mt-8">
-            <SubscribeForm />
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-zinc-900/10 bg-[#25252a] text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-lg font-black tracking-tight">DesAIgn Radar</p>
-            <p className="mt-2 max-w-md text-sm leading-6 text-white/60">
-              Design and AI signals, useful links, and occasional strange image
-              experiments from the edge of the feed.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="#subscribe"
-              className="rounded-full bg-white px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-brand hover:text-white"
-            >
-              Subscribe
-            </a>
-            <a
-              href="https://www.instagram.com/desaign_radar?igsh=MTQ2NTl4ZzNta28wNA%3D%3D"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
-            >
-              Instagram
-            </a>
-            <a
-              href="https://t.me/DesAIgn_radar"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
-            >
-              Telegram
-            </a>
-            <a
-              href="https://x.com/DesAIgn_Radar"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
-            >
-              X
-            </a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

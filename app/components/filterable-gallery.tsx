@@ -102,7 +102,7 @@ function ArchiveRail({
     <aside className="hidden lg:block">
       <div className="sticky top-6">
         <a
-          href="#subscribe"
+          href="/subscribe"
           className="group mb-6 block rounded-lg bg-zinc-950 p-4 transition hover:bg-brand-deep"
         >
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brand">
