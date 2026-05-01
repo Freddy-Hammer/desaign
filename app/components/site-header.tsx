@@ -14,9 +14,12 @@ export function SiteHeader() {
           <span>gn</span>
         </Link>
         <div className="flex items-center gap-4">
-          <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500 md:inline">
-            Design + AI · curated
-          </span>
+          <Link
+            href="/jobs"
+            className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep md:inline"
+          >
+            Jobs
+          </Link>
           <Link
             href="/subscribe"
             className="rounded-full bg-zinc-950 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
