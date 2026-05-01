@@ -22,6 +22,13 @@ create table if not exists jobs (
 create index if not exists jobs_active_posted_idx on jobs (active, posted_date desc nulls last);
 create index if not exists jobs_category_active_idx on jobs (category, active);
 
+-- Newsletter integration: lets the /newsletter picker mark jobs as sent
+-- so they don't appear in next week's picker. NULL = eligible for the
+-- next newsletter; 'sent' = already used.
+alter table jobs add column if not exists newsletter_status text default null;
+create index if not exists jobs_newsletter_status_idx on jobs (newsletter_status)
+  where newsletter_status is null or newsletter_status = 'queued';
+
 alter table jobs enable row level security;
 
 -- Public read: active jobs only. Frontend uses anon key.

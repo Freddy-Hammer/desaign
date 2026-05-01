@@ -32,19 +32,18 @@ start "" "reports/newsletter.html"
 Newsletter picker ready
 ────────────────────────────────────
 Eligible posts (last 30d, unsent): N
-Starred during review (★ pre-checked): M
+Eligible jobs  (last 7d, unsent):  J
 
 Picker opened → reports/newsletter.html
 ```
-
-If `M` cannot be derived from the script output (it currently isn't), omit the second line — the picker itself shows the count.
 
 ## What the picker does (FYI for the user)
 
 - Filters: Days (7/14/30), Type (Videos/Articles/Images), "Show only ★ picks" toggle
 - Pre-checks every post where `newsletter_status='queued'` (i.e. items the user starred during review)
-- "Generate HTML →" produces paste-ready HTML for Beehiiv (Code/HTML view), grouped by Videos / Reads & studio notes / Images, thumbnails optional via toolbar checkbox
-- "Mark selected as sent" flips `newsletter_status='sent'` on the checked items so they drop out of next week's queue
+- Below the post groups, shows a **💼 Open roles** group with designer-focused jobs from the last 7 days that haven't been included in a previous newsletter
+- "Generate HTML →" produces paste-ready HTML for Beehiiv (Code/HTML view), grouped by Videos / Reads & studio notes / Images / 💼 Open roles, thumbnails optional via toolbar checkbox
+- "Mark selected as sent" flips `newsletter_status='sent'` on checked items in BOTH the `posts` and `jobs` tables, so they drop out of next week's picker
 
 ## When to NOT trigger this skill
 
@@ -54,10 +53,11 @@ If `M` cannot be derived from the script output (it currently isn't), omit the s
 
 ## Schema dependency
 
-This skill requires the `newsletter_status` column on the `posts` table:
+This skill requires the `newsletter_status` column on BOTH the `posts` and `jobs` tables:
 
 ```sql
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS newsletter_status text DEFAULT NULL;
+ALTER TABLE jobs  ADD COLUMN IF NOT EXISTS newsletter_status text DEFAULT NULL;
 ```
 
-The script will print this SQL and exit non-zero if the column is missing.
+The script will print the matching migration and exit non-zero if either column is missing.

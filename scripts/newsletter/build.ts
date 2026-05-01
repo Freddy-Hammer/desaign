@@ -9,18 +9,32 @@ import { getSupabase } from "../lib/supabase-client";
 // Posts older than this drop out of the picker. Beehiiv newsletters are
 // weekly; 30 days gives enough headroom for skipped weeks.
 const LOOKBACK_DAYS = 30;
+// Jobs are time-sensitive — only surface those discovered in the last week.
+const JOBS_LOOKBACK_DAYS = 7;
 
 async function main() {
   const sb = getSupabase();
 
-  const cutoff = new Date(Date.now() - LOOKBACK_DAYS * 86400 * 1000).toISOString();
-  const { data: posts, error } = await sb
-    .from("posts")
-    .select("id,title,link,source,category,thumbnail_url,created_at,newsletter_status")
-    .gte("created_at", cutoff)
-    .or("newsletter_status.is.null,newsletter_status.eq.queued")
-    .order("created_at", { ascending: false });
+  const postsCutoff = new Date(Date.now() - LOOKBACK_DAYS * 86400 * 1000).toISOString();
+  const jobsCutoff = new Date(Date.now() - JOBS_LOOKBACK_DAYS * 86400 * 1000).toISOString();
 
+  const [postsRes, jobsRes] = await Promise.all([
+    sb
+      .from("posts")
+      .select("id,title,link,source,category,thumbnail_url,created_at,newsletter_status")
+      .gte("created_at", postsCutoff)
+      .or("newsletter_status.is.null,newsletter_status.eq.queued")
+      .order("created_at", { ascending: false }),
+    sb
+      .from("jobs")
+      .select("id,company,title,location,url,posted_date,department,category,first_seen_at,newsletter_status")
+      .eq("active", true)
+      .gte("first_seen_at", jobsCutoff)
+      .or("newsletter_status.is.null,newsletter_status.eq.queued")
+      .order("posted_date", { ascending: false, nullsFirst: false }),
+  ]);
+
+  const { data: posts, error } = postsRes;
   if (error) {
     if (/column.*newsletter_status.*does not exist/i.test(error.message)) {
       console.error("\n  Schema migration required.");
@@ -35,10 +49,25 @@ async function main() {
     throw new Error(`Failed to fetch posts: ${error.message}`);
   }
 
+  const { data: jobs, error: jobsErr } = jobsRes;
+  if (jobsErr) {
+    if (/column.*newsletter_status.*does not exist/i.test(jobsErr.message)) {
+      console.error("\n  Schema migration required for jobs table.");
+      console.error("  Run this in Supabase → SQL editor, then re-run:\n");
+      console.error("    ALTER TABLE jobs");
+      console.error("      ADD COLUMN IF NOT EXISTS newsletter_status text DEFAULT NULL;\n");
+      console.error("    CREATE INDEX IF NOT EXISTS jobs_newsletter_status_idx");
+      console.error("      ON jobs (newsletter_status)");
+      console.error("      WHERE newsletter_status IS NULL OR newsletter_status = 'queued';\n");
+      process.exit(1);
+    }
+    throw new Error(`Failed to fetch jobs: ${jobsErr.message}`);
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  const html = buildHtml(posts ?? [], supabaseUrl, serviceKey);
+  const html = buildHtml(posts ?? [], jobs ?? [], supabaseUrl, serviceKey);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -47,6 +76,7 @@ async function main() {
 
   console.log(`Newsletter builder: ${outPath}`);
   console.log(`Eligible posts (last ${LOOKBACK_DAYS}d, unsent): ${posts?.length ?? 0}`);
+  console.log(`Eligible jobs  (last ${JOBS_LOOKBACK_DAYS}d, unsent): ${jobs?.length ?? 0}`);
   console.log(`Open in your browser to pick items, copy HTML, paste into Beehiiv.`);
 }
 
@@ -65,9 +95,10 @@ function safeJson(v: unknown): string {
     .replace(/&/g, "\\u0026");
 }
 
-function buildHtml(posts: any[], supabaseUrl: string, serviceKey: string): string {
+function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: string): string {
   const generatedAt = new Date().toLocaleString();
   const postsMap = Object.fromEntries(posts.map((p) => [p.id, p]));
+  const jobsMap = Object.fromEntries(jobs.map((j) => [j.id, j]));
 
   return `<!DOCTYPE html>
 <!-- LOCAL USE ONLY — contains Supabase service role key. Do not share or deploy. -->
@@ -224,9 +255,11 @@ function buildHtml(posts: any[], supabaseUrl: string, serviceKey: string): strin
 const SUPABASE_URL = ${safeJson(supabaseUrl)};
 const SUPABASE_KEY = ${safeJson(serviceKey)};
 const POSTS_MAP = ${safeJson(postsMap)};
+const JOBS_MAP = ${safeJson(jobsMap)};
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const selected = new Set();
+const selected = new Set();        // post ids
+const selectedJobs = new Set();    // job ids — kept separate so markSent hits the right table
 
 function classifyType(p) {
   var src = (p.source || '').toLowerCase();
@@ -283,11 +316,38 @@ function renderPostRow(p) {
   + '</label>';
 }
 
+function jobTimestampMs(j) {
+  return j.first_seen_at ? Date.parse(j.first_seen_at) : 0;
+}
+
+function renderJobRow(j) {
+  var date = j.posted_date
+    ? new Date(j.posted_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : (j.first_seen_at ? new Date(j.first_seen_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+  var isQueued = j.newsletter_status === 'queued';
+  var rowClass = isQueued ? 'post-row checked' : 'post-row';
+  var checkedAttr = isQueued ? 'checked' : '';
+  return '<label class="' + rowClass + '" data-id="' + escAttr(j.id) + '" data-kind="job" data-type="Jobs" data-ts="' + jobTimestampMs(j) + '" data-status="' + escAttr(j.newsletter_status || '') + '">'
+    + '<input type="checkbox" data-id="' + escAttr(j.id) + '" data-kind="job" ' + checkedAttr + ' onchange="onToggleJob(this)" />'
+    + '<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px;background:#f4f0e8;color:#7c5cff;">💼</div>'
+    + '<div class="info">'
+    +   '<div class="title"><a href="' + escAttr(j.url) + '" target="_blank" rel="noopener">' + escHtml(j.title) + '</a></div>'
+    +   '<div class="meta">'
+    +     '<span><strong>' + escHtml(j.company) + '</strong></span>'
+    +     '<span class="badge">' + escHtml(j.category || '') + '</span>'
+    +     (j.location ? '<span>' + escHtml(j.location) + '</span>' : '')
+    +     '<span>' + escHtml(date) + '</span>'
+    +   '</div>'
+    + '</div>'
+    + '<a class="open" href="' + escAttr(j.url) + '" target="_blank" rel="noopener">↗</a>'
+  + '</label>';
+}
+
 function renderList() {
   var listEl = document.getElementById('post-list');
-  if (Object.keys(POSTS_MAP).length === 0) return;
+  if (Object.keys(POSTS_MAP).length === 0 && Object.keys(JOBS_MAP).length === 0) return;
 
-  // Group by content type, then sort newest-first within each group.
+  // Posts grouped by content type, newest first within each group.
   var groups = { Videos: [], Articles: [], Images: [] };
   Object.values(POSTS_MAP).forEach(function(p) {
     var t = classifyType(p);
@@ -305,12 +365,24 @@ function renderList() {
     html += '</div>';
   });
 
+  // Jobs group — separate, after posts. Sorted by posted_date desc, then first_seen_at.
+  var jobsArr = Object.values(JOBS_MAP);
+  if (jobsArr.length > 0) {
+    jobsArr.sort(function(a, b) { return jobTimestampMs(b) - jobTimestampMs(a); });
+    html += '<div class="group" data-type="Jobs">';
+    html += '<div class="group-header">💼 Open roles · ' + jobsArr.length + '</div>';
+    jobsArr.forEach(function(j) { html += renderJobRow(j); });
+    html += '</div>';
+  }
+
   listEl.innerHTML = html;
 
-  // Pre-populate the selection from items starred during review
-  // (newsletter_status === queued). User can untick before generating.
+  // Pre-populate selections from items starred during review.
   Object.values(POSTS_MAP).forEach(function(p) {
     if (p.newsletter_status === 'queued') selected.add(p.id);
+  });
+  Object.values(JOBS_MAP).forEach(function(j) {
+    if (j.newsletter_status === 'queued') selectedJobs.add(j.id);
   });
 
   applyFilters();
@@ -329,11 +401,27 @@ function onToggle(cb) {
   updateCounts();
 }
 
+function onToggleJob(cb) {
+  var id = cb.getAttribute('data-id');
+  var row = cb.closest('.post-row');
+  if (cb.checked) {
+    selectedJobs.add(id);
+    row.classList.add('checked');
+  } else {
+    selectedJobs.delete(id);
+    row.classList.remove('checked');
+  }
+  updateCounts();
+}
+
+function totalSelected() { return selected.size + selectedJobs.size; }
+
 function updateCounts() {
-  document.getElementById('selected-count').textContent = selected.size;
-  document.getElementById('ab-selected').textContent = selected.size;
-  document.getElementById('btn-generate').disabled = selected.size === 0;
-  document.getElementById('btn-mark-sent').disabled = selected.size === 0;
+  var total = totalSelected();
+  document.getElementById('selected-count').textContent = total;
+  document.getElementById('ab-selected').textContent = total;
+  document.getElementById('btn-generate').disabled = total === 0;
+  document.getElementById('btn-mark-sent').disabled = total === 0;
 }
 
 function applyFilters() {
@@ -364,20 +452,22 @@ function applyFilters() {
   document.getElementById('visible-count').textContent = visible;
 }
 
+function toggleRowCheckbox(cb, on) {
+  cb.checked = on;
+  if (cb.getAttribute('data-kind') === 'job') onToggleJob(cb);
+  else onToggle(cb);
+}
+
 function selectVisible() {
   document.querySelectorAll('.post-row:not(.hidden)').forEach(function(row) {
     var cb = row.querySelector('input[type=checkbox]');
-    if (!cb.checked) {
-      cb.checked = true;
-      onToggle(cb);
-    }
+    if (!cb.checked) toggleRowCheckbox(cb, true);
   });
 }
 
 function selectNone() {
   document.querySelectorAll('.post-row input[type=checkbox]:checked').forEach(function(cb) {
-    cb.checked = false;
-    onToggle(cb);
+    toggleRowCheckbox(cb, false);
   });
 }
 
@@ -429,6 +519,28 @@ function buildBeehiivHtml() {
     out.push('');
     out.push('<hr />');
   });
+
+  // Jobs section — added after the regular post groups.
+  var jobsArr = [];
+  selectedJobs.forEach(function(id) {
+    var j = JOBS_MAP[id];
+    if (j) jobsArr.push(j);
+  });
+  jobsArr.sort(function(a, b) { return jobTimestampMs(b) - jobTimestampMs(a); });
+  if (jobsArr.length > 0) {
+    out.push('');
+    out.push('<h2>💼 Open roles</h2>');
+    jobsArr.forEach(function(j) {
+      out.push('');
+      var line2Parts = [escHtml(j.company)];
+      if (j.location) line2Parts.push(escHtml(j.location));
+      if (j.category) line2Parts.push(escHtml(j.category));
+      out.push('<p style="margin-bottom:36px;"><strong><a href="' + escAttr(j.url) + '">' + escHtml(j.title) + '</a></strong><br />' + line2Parts.join(' · ') + '</p>');
+    });
+    out.push('');
+    out.push('<hr />');
+  }
+
   // Drop trailing <hr/>
   if (out[out.length - 1] === '<hr />') out.pop();
   return out.join('\\n');
@@ -465,30 +577,43 @@ async function copyHtml() {
 }
 
 async function markSent() {
-  if (selected.size === 0) return;
-  var ids = Array.from(selected);
-  if (!confirm('Mark ' + ids.length + ' post(s) as sent in Beehiiv? They will disappear from the picker on next reload.')) return;
+  var total = totalSelected();
+  if (total === 0) return;
+  var postIds = Array.from(selected);
+  var jobIds = Array.from(selectedJobs);
+  if (!confirm('Mark ' + total + ' item(s) as sent in Beehiiv? They will disappear from the picker on next reload.')) return;
 
   var btn = document.getElementById('btn-mark-sent');
   btn.disabled = true;
   btn.textContent = 'Marking…';
   try {
-    var { error } = await sb.from('posts').update({ newsletter_status: 'sent' }).in('id', ids);
-    if (error) throw new Error(error.message);
-    showToast('Marked ' + ids.length + ' as sent ✓');
+    var promises = [];
+    if (postIds.length > 0) promises.push(sb.from('posts').update({ newsletter_status: 'sent' }).in('id', postIds));
+    if (jobIds.length > 0) promises.push(sb.from('jobs').update({ newsletter_status: 'sent' }).in('id', jobIds));
+    var results = await Promise.all(promises);
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].error) throw new Error(results[i].error.message);
+    }
+    showToast('Marked ' + total + ' as sent ✓');
     // Remove from local state and DOM
-    ids.forEach(function(id) {
+    postIds.forEach(function(id) {
       delete POSTS_MAP[id];
       var row = document.querySelector('.post-row[data-id="' + CSS.escape(id) + '"]');
       if (row) row.remove();
     });
+    jobIds.forEach(function(id) {
+      delete JOBS_MAP[id];
+      var row = document.querySelector('.post-row[data-id="' + CSS.escape(id) + '"]');
+      if (row) row.remove();
+    });
     selected.clear();
+    selectedJobs.clear();
     updateCounts();
     applyFilters();
   } catch (err) {
     showToast('Update failed: ' + err.message, true);
   } finally {
-    btn.disabled = selected.size === 0;
+    btn.disabled = totalSelected() === 0;
     btn.textContent = 'Mark selected as sent';
   }
 }
