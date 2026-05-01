@@ -385,6 +385,34 @@ function renderList() {
     if (j.newsletter_status === 'queued') selectedJobs.add(j.id);
   });
 
+  // Auto-pick: jobs aren't manually starred during /collect, so default the
+  // newsletter to the freshest N jobs from distinct companies. The user can
+  // tick more or untick any of these in the picker.
+  var AUTO_PICK_TARGET = 5;
+  var allJobs = Object.values(JOBS_MAP).slice().sort(function(a, b) { return jobTimestampMs(b) - jobTimestampMs(a); });
+  var seenCompanies = new Set();
+  var autoPicks = [];
+  for (var i = 0; i < allJobs.length && autoPicks.length < AUTO_PICK_TARGET; i++) {
+    if (!seenCompanies.has(allJobs[i].company)) {
+      autoPicks.push(allJobs[i]);
+      seenCompanies.add(allJobs[i].company);
+    }
+  }
+  // If we ran out of distinct companies, fill any remaining slots with newest unpicked.
+  for (var i = 0; i < allJobs.length && autoPicks.length < AUTO_PICK_TARGET; i++) {
+    if (autoPicks.indexOf(allJobs[i]) === -1) autoPicks.push(allJobs[i]);
+  }
+  autoPicks.forEach(function(j) {
+    if (selectedJobs.has(j.id)) return;
+    selectedJobs.add(j.id);
+    var row = document.querySelector('.post-row[data-kind="job"][data-id="' + CSS.escape(j.id) + '"]');
+    if (row) {
+      var cb = row.querySelector('input[type=checkbox]');
+      if (cb) cb.checked = true;
+      row.classList.add('checked');
+    }
+  });
+
   applyFilters();
 }
 
