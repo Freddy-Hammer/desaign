@@ -10,7 +10,8 @@ export function categorize(title: string, department: string | null): JobCategor
     return "Design Eng";
   }
   if (/\b(ai|generative|prompt)\b/.test(t) && /\b(design|creative)\b/.test(t)) return "AI/Creative";
-  if (/\b(design|designer|ux|ui|product design|interaction|art director|creative director|creative lead|illustrator|type)\b/.test(t)) {
+  if (/\bcopywriter\b/.test(t)) return "Brand";
+  if (/\b(design|designer|ux|ui|product design|interaction|art director|creative director|creative lead|creative studio|creative ops|creative operations|illustrator|type)\b/.test(t)) {
     return "Design";
   }
   if (d === "design" || d === "brand" || d === "creative") return "Design";
