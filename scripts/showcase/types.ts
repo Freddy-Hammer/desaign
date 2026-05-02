@@ -1,5 +1,5 @@
 export interface ShowcasePick {
-  source: "Awwwards" | "TheFWA" | "CSSDA" | "Siteinspire";
+  source: "Awwwards" | "TheFWA" | "CSSDA";
   award: string;
   title: string;
   external_url: string;

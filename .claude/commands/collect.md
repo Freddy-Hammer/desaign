@@ -13,7 +13,7 @@ Present three questions in a single `AskUserQuestion` call. The user can pick a 
 **Question 1 — Sources** (`multiSelect: true`, header "Sources")
 - "YouTube" — Pull recent videos from monitored YouTube channels
 - "Design Studios" — Scrape case studies from monitored design studios
-- "Showcases" — Pick today's site of the day from Awwwards / TheFWA / CSSDA / Siteinspire
+- "Showcases" — Pick today's site of the day from Awwwards / TheFWA / CSSDA
 
 **Question 2 — Max items per channel/studio** (`multiSelect: false`, header "Max items")
 - "5"
@@ -84,7 +84,7 @@ Skip if Showcases wasn't selected.
 npx tsx scripts/showcase/run.ts --insert
 ```
 
-The collector picks one Site of the Day from each of Awwwards, TheFWA, CSSDA, and the first carousel item from Siteinspire — typically 4 candidates per run, fewer if any source was rate-limited or returned the same site as last run (dedup).
+The collector picks one Site of the Day from each of Awwwards, TheFWA, and CSSDA — typically 3 candidates per run, fewer if a source returned the same site as last run (dedup).
 
 Capture from the output:
 - per-source line: ✓ <title> → <external URL> (or ✗ <error>)
@@ -145,7 +145,7 @@ Collection complete
 ────────────────────────────────────
 YouTube          3 new · 0 duplicates · 1 auto-rejected (no image)
 Design Studios   5 new · 37 duplicates · 2 auto-rejected (no image)
-Showcases        3 new · 1 duplicate (Awwwards / TheFWA / CSSDA / Siteinspire)
+Showcases        3 new · 0 duplicates (Awwwards / TheFWA / CSSDA)
 Instagram        2 new · 0 duplicates (manual)
 ────────────────────────────────────
 Total new in raw_items: 10

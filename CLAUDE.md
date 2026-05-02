@@ -34,7 +34,7 @@ npx tsx scripts/newsletter/build.ts  # writes reports/newsletter.html
 npx tsx scripts/instagram/add.ts --image=<url> --link=<url> [--title=<text>] [--author=<handle>]
 
 # Showcase collector — picks one Site of the Day from each of:
-#   Awwwards, TheFWA, CSSDA, Siteinspire (first carousel item)
+#   Awwwards, TheFWA, CSSDA
 # Writes raw_items rows with content_type='showcase'. Same review → posts → Telegram path.
 npx tsx scripts/showcase/run.ts            # dry-run
 npx tsx scripts/showcase/run.ts --insert   # writes to raw_items

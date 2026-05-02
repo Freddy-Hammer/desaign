@@ -1,6 +1,6 @@
 /**
  * Showcase collector — picks one Site of the Day from each of:
- *   Awwwards, TheFWA, CSSDA, Siteinspire (first carousel item)
+ *   Awwwards, TheFWA, CSSDA
  *
  * Each pick lands in `raw_items` with content_type='showcase' and flows
  * through the same human review → posts → site + Telegram pipeline as
@@ -18,7 +18,6 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 import { pickAwwwards } from "./sources/awwwards";
 import { pickFwa } from "./sources/fwa";
 import { pickCssda } from "./sources/cssda";
-import { pickSiteinspire } from "./sources/siteinspire";
 import { mapToRawItem } from "./map-to-raw-item";
 import { findExisting } from "../lib/dedup";
 import { getSupabase } from "../lib/supabase-client";
@@ -30,7 +29,6 @@ const SOURCES: { name: string; fn: () => Promise<ShowcasePick | null> }[] = [
   { name: "Awwwards", fn: pickAwwwards },
   { name: "TheFWA", fn: pickFwa },
   { name: "CSSDA", fn: pickCssda },
-  { name: "Siteinspire", fn: pickSiteinspire },
 ];
 
 async function main() {
