@@ -141,6 +141,7 @@ const CONTENT_TYPE_LABELS: Record<string, string> = {
   case_study: "Cases",
   article: "Articles",
   image: "Images",
+  showcase: "Sites",
 };
 
 function contentTypeLabel(t: string): string {
@@ -161,7 +162,7 @@ function buildHtml(
   newsletterEnabled: boolean,
 ): string {
   const generatedAt = new Date().toLocaleString();
-  const defaultCategories = ["AI Tools", "Design", "UX", "Tutorial", "Case Study", "News", "Tool"];
+  const defaultCategories = ["AI Tools", "Design", "UX", "Tutorial", "Case Study", "News", "Tool", "Showcase"];
   const allCategories = [...new Set([...existingCategories, ...defaultCategories])].sort();
 
   const itemsMap = Object.fromEntries(items.map((i) => [i.id, i]));
@@ -488,7 +489,10 @@ function removeCard(id) {
 }
 
 function buildAutoPostData(item) {
-  var category = guessCategory(item.raw_title, item.raw_description);
+  var category;
+  if (item.content_type === 'showcase') category = 'Showcase';
+  else if (item.content_type === 'case_study') category = 'Case Study';
+  else category = guessCategory(item.raw_title, item.raw_description);
   return {
     title: (item.raw_title || '').trim(),
     category: category,
@@ -610,7 +614,7 @@ function openDetails(id) {
   document.getElementById("f-title").value = existing ? existing.title : (item.raw_title || "");
   document.getElementById("f-category").value = existing
     ? existing.category
-    : (item.content_type === "case_study" ? "Case Study" : guessCategory(item.raw_title, item.raw_description));
+    : buildAutoPostData(item).category;
   document.getElementById("f-thumbnail").value = existing ? existing.thumbnail_url : (item.thumbnail_url || "");
   document.getElementById("modal-thumb").src = item.thumbnail_url || "";
   document.getElementById("modal-overlay").classList.add("open");

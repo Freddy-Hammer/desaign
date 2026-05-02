@@ -32,6 +32,12 @@ npx tsx scripts/newsletter/build.ts  # writes reports/newsletter.html
 
 # Manual Instagram add (no IG API, so the user pastes image + post URL)
 npx tsx scripts/instagram/add.ts --image=<url> --link=<url> [--title=<text>] [--author=<handle>]
+
+# Showcase collector — picks one Site of the Day from each of:
+#   Awwwards, TheFWA, CSSDA, Siteinspire (first carousel item)
+# Writes raw_items rows with content_type='showcase'. Same review → posts → Telegram path.
+npx tsx scripts/showcase/run.ts            # dry-run
+npx tsx scripts/showcase/run.ts --insert   # writes to raw_items
 ```
 
 ## Architecture

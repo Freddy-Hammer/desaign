@@ -13,6 +13,7 @@ Present three questions in a single `AskUserQuestion` call. The user can pick a 
 **Question 1 — Sources** (`multiSelect: true`, header "Sources")
 - "YouTube" — Pull recent videos from monitored YouTube channels
 - "Design Studios" — Scrape case studies from monitored design studios
+- "Showcases" — Pick today's site of the day from Awwwards / TheFWA / CSSDA / Siteinspire
 
 **Question 2 — Max items per channel/studio** (`multiSelect: false`, header "Max items")
 - "5"
@@ -75,6 +76,22 @@ Capture and parse the output for:
 
 Note: studios that require JavaScript rendering will automatically fall back to Playwright. This is expected.
 
+## Step 4.25 — Run the Showcase collector
+
+Skip if Showcases wasn't selected.
+
+```
+npx tsx scripts/showcase/run.ts --insert
+```
+
+The collector picks one Site of the Day from each of Awwwards, TheFWA, CSSDA, and the first carousel item from Siteinspire — typically 4 candidates per run, fewer if any source was rate-limited or returned the same site as last run (dedup).
+
+Capture from the output:
+- per-source line: ✓ <title> → <external URL> (or ✗ <error>)
+- "Inserted N rows into raw_items" tally
+
+Do NOT pass `--max-items` or `--freshness` here — the showcase collector picks exactly one per source per run by design.
+
 ## Step 4.5 — Optional: manually-added Instagram posts
 
 Instagram has no usable public API, so this step is manual: the user pastes one or more posts they've found, and the script inserts them into `raw_items` so they show up in the review queue alongside the auto-collected items.
@@ -128,6 +145,7 @@ Collection complete
 ────────────────────────────────────
 YouTube          3 new · 0 duplicates · 1 auto-rejected (no image)
 Design Studios   5 new · 37 duplicates · 2 auto-rejected (no image)
+Showcases        3 new · 1 duplicate (Awwwards / TheFWA / CSSDA / Siteinspire)
 Instagram        2 new · 0 duplicates (manual)
 ────────────────────────────────────
 Total new in raw_items: 10
