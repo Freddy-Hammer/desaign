@@ -18,6 +18,19 @@ const DEFAULT_STUDIOS: { name: string; url: string }[] = [
   { name: "Studio Dumbar", url: "https://studiodumbar.com/work" },
   { name: "Collins", url: "https://wearecollins.com/case-studies" },
   { name: "Mouthwash", url: "https://mouthwash.studio/work/" },
+  { name: "Pacifica", url: "https://thisispacifica.com/" },
+  { name: "Of Form", url: "https://offormdesign.com/" },
+  { name: "Studio Foundry", url: "https://studiofoundry.co.uk/projects/" },
+  { name: "Applied", url: "https://helloapplied.com/work/" },
+  { name: "Studio Nari", url: "https://www.studionari.co.uk/" },
+  { name: "Studio Miles", url: "https://studiomiles.ca/projets" },
+  { name: "Rudy", url: "https://ru-dy.com/work" },
+  { name: "Studio Plankton", url: "https://www.studioplankton.com/work" },
+  { name: "Snask", url: "https://snask.com/our-work/" },
+  { name: "Tiquismiquis", url: "https://tiquismiquis.club/proyectos" },
+  { name: "Red Antler", url: "https://www.redantler.com/work" },
+  { name: "Field", url: "https://field.io/work" },
+  { name: "Newkid", url: "https://newkid.services/work" },
 ];
 // -----------------------------
 

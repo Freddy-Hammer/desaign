@@ -24,6 +24,10 @@ const DEFAULT_CHANNELS = [
   "https://www.youtube.com/@Chase-H-AI",
   "https://www.youtube.com/@FluxAcademy",
   "https://www.youtube.com/@Figma",
+  "https://www.youtube.com/@Rive_app",
+  "https://www.youtube.com/@Webflow",
+  "https://www.youtube.com/@Framer",
+  "https://www.youtube.com/@splinetool",
 ];
 const DEFAULT_FRESHNESS_DAYS = 7;
 const DEFAULT_MAX_ITEMS_PER_CHANNEL = 50;
