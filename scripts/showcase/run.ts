@@ -48,7 +48,7 @@ async function main() {
       }
       picks.push(pick);
       console.log(
-        `  ${name.padEnd(12)} ✓ ${pick.title}  → ${pick.external_url}`
+        `  ${name.padEnd(12)} ✓ ${pick.title}  → ${pick.detail_url}`
       );
     } catch (err) {
       console.error(`  ${name.padEnd(12)} ✗ ${(err as Error).message}`);

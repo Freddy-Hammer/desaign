@@ -2,9 +2,12 @@ import { RawItem } from "../lib/raw-item-schema";
 import { ShowcasePick } from "./types";
 
 export function mapToRawItem(pick: ShowcasePick): RawItem {
+  // LEGAL: source_url must be the curator's detail page (e.g.
+  // awwwards.com/sites/<slug>), NEVER the awarded company's homepage.
+  // The artifact URL is kept in metadata for reference only.
   return {
     source: pick.source,
-    source_url: pick.external_url,
+    source_url: pick.detail_url,
     source_id: pick.source_id,
     content_type: "showcase",
     raw_title: pick.title,
