@@ -71,26 +71,27 @@ function parseDurationSeconds(iso: string): number {
 }
 
 /**
- * Detects Shorts by GETting /shorts/{id} and reading the canonical URL.
- * Real Shorts keep the /shorts/ path; regular videos canonicalize to /watch?v=...
- * Only called for videos whose duration is ambiguous (≤ 60s).
+ * Detects Shorts using only YouTube API data — no extra HTTP requests, works in CI.
+ * Rules:
+ *   ≤ 60s  → always a Short
+ *   61–180s → Short if title/description/tags contain #shorts or #short
+ *   > 180s → never a Short (YouTube Shorts max is ~3 min)
  */
-async function isShort(videoId: string): Promise<boolean> {
-  try {
-    const res = await fetch(`https://www.youtube.com/shorts/${videoId}`, {
-      headers: { "user-agent": "Mozilla/5.0" },
-    });
-    const html = await res.text();
-    const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
-    return canonical?.includes("/shorts/") ?? false;
-  } catch {
-    return false;
-  }
+function isLikelyShort(item: any): boolean {
+  const secs = parseDurationSeconds(item.contentDetails?.duration ?? "");
+  if (secs <= 60) return true;
+  if (secs > 180) return false;
+  const text = [
+    item.snippet?.title ?? "",
+    item.snippet?.description ?? "",
+    ...(item.snippet?.tags ?? []),
+  ].join(" ").toLowerCase();
+  return /#shorts?\b/.test(text);
 }
 
 /**
  * Fetches recent videos from a channel URL within the freshness window.
- * Excludes Shorts using YouTube's /shorts/{id} URL classification.
+ * Excludes Shorts using API-only detection (duration + #shorts hashtag).
  */
 export async function fetchChannelVideos(
   channelUrl: string,
@@ -124,20 +125,8 @@ export async function fetchChannelVideos(
   let shortsSkipped = 0;
   const videos: VideoDetails[] = [];
 
-  // Primary gate: duration > 60s → definitely not a short, no HTTP check needed.
-  // Only scrape the /shorts/ URL for videos ≤ 60s (rare edge cases like very
-  // short regular clips or ambiguous new Shorts formats).
-  const shortFlags = await Promise.all(
-    detailItems.map((item) => {
-      const secs = parseDurationSeconds(item.contentDetails?.duration ?? "");
-      if (secs > 60) return Promise.resolve(false);
-      return isShort(item.id as string);
-    })
-  );
-
-  for (let i = 0; i < detailItems.length; i++) {
-    const item = detailItems[i];
-    if (shortFlags[i]) {
+  for (const item of detailItems) {
+    if (isLikelyShort(item)) {
       shortsSkipped++;
       continue;
     }
