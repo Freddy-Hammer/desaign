@@ -60,10 +60,19 @@ async function resolveChannelId(channelUrl: string): Promise<{ channelId: string
   throw new Error(`Cannot parse channel URL: ${channelUrl}`);
 }
 
+/** Parses ISO 8601 duration (e.g. PT1M30S) into total seconds. */
+function parseDurationSeconds(iso: string): number {
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1] ?? "0", 10) * 3600) +
+         (parseInt(m[2] ?? "0", 10) * 60) +
+         parseInt(m[3] ?? "0", 10);
+}
+
 /**
  * Detects Shorts by GETting /shorts/{id} and reading the canonical URL.
  * Real Shorts keep the /shorts/ path; regular videos canonicalize to /watch?v=...
- * (HEAD requests don't differentiate — YouTube 302s either way.)
+ * Only called for videos whose duration is ambiguous (≤ 60s).
  */
 async function isShort(videoId: string): Promise<boolean> {
   try {
@@ -114,8 +123,15 @@ export async function fetchChannelVideos(
   let shortsSkipped = 0;
   const videos: VideoDetails[] = [];
 
+  // Primary gate: duration > 60s → definitely not a short, no HTTP check needed.
+  // Only scrape the /shorts/ URL for videos ≤ 60s (rare edge cases like very
+  // short regular clips or ambiguous new Shorts formats).
   const shortFlags = await Promise.all(
-    detailItems.map((item) => isShort(item.id as string))
+    detailItems.map((item) => {
+      const secs = parseDurationSeconds(item.contentDetails?.duration ?? "");
+      if (secs > 60) return Promise.resolve(false);
+      return isShort(item.id as string);
+    })
   );
 
   for (let i = 0; i < detailItems.length; i++) {
