@@ -55,6 +55,8 @@ const MAX_ITEMS_PER_CHANNEL = readNumberArg("--max-items", DEFAULT_MAX_ITEMS_PER
 // Both flags are designed for automated runs; manual runs leave them unset.
 const TOP_N = readNumberArg("--top", Infinity);
 const ONE_PER_CHANNEL = process.argv.includes("--one-per-channel");
+// --auto-publish: tags items so scripts/auto-publish.ts promotes them directly to posts + Telegram.
+const AUTO_PUBLISH = process.argv.includes("--auto-publish");
 
 async function main() {
   const publishedAfter = new Date();
@@ -148,6 +150,12 @@ async function main() {
   if (newItems.length === 0) {
     console.log("Nothing new to insert.");
     return;
+  }
+
+  if (AUTO_PUBLISH) {
+    for (const c of newItems) {
+      c.item.metadata = { ...c.item.metadata, auto_publish: true };
+    }
   }
 
   const { error } = await getSupabase()

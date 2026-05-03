@@ -25,10 +25,18 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: npx tsx scripts/youtube/run.ts --insert --freshness=2 --max-items=10 --top=3 --one-per-channel
+        run: npx tsx scripts/youtube/run.ts --insert --freshness=2 --max-items=10 --top=3 --one-per-channel --auto-publish
 
       - name: Collect Sites of the Day (Awwwards / TheFWA / CSSDA)
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx tsx scripts/showcase/run.ts --insert
+        run: npx tsx scripts/showcase/run.ts --insert --auto-publish
+
+      - name: Publish to posts + Telegram
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: npx tsx scripts/auto-publish.ts

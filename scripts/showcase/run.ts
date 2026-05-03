@@ -24,6 +24,7 @@ import { getSupabase } from "../lib/supabase-client";
 import { ShowcasePick } from "./types";
 
 const INSERT_MODE = process.argv.includes("--insert");
+const AUTO_PUBLISH = process.argv.includes("--auto-publish");
 
 const SOURCES: { name: string; fn: () => Promise<ShowcasePick | null> }[] = [
   { name: "Awwwards", fn: pickAwwwards },
@@ -96,6 +97,12 @@ async function main() {
   if (newItems.length === 0) {
     console.log("Nothing new to insert.");
     return;
+  }
+
+  if (AUTO_PUBLISH) {
+    for (const item of newItems) {
+      item.metadata = { ...item.metadata, auto_publish: true };
+    }
   }
 
   const { error } = await getSupabase().from("raw_items").insert(newItems);
