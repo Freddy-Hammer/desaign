@@ -105,8 +105,8 @@ async function main() {
   // Sort newest-first, optionally enforce one item per channel, then cap at TOP_N.
   if (ONE_PER_CHANNEL || TOP_N < Infinity) {
     newItems.sort((a, b) =>
-      new Date(b.item.raw_published_at ?? 0).getTime() -
-      new Date(a.item.raw_published_at ?? 0).getTime()
+      ((b.item.metadata as any)?.view_count ?? 0) -
+      ((a.item.metadata as any)?.view_count ?? 0)
     );
     if (ONE_PER_CHANNEL) {
       const seenChannels = new Set<string>();

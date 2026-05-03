@@ -9,6 +9,7 @@ export interface VideoDetails {
   publishedAt: string;
   duration: string; // ISO 8601, e.g. PT12M34S
   thumbnailUrl: string;
+  viewCount: number;
 }
 
 function getApiKey(): string {
@@ -112,9 +113,9 @@ export async function fetchChannelVideos(
 
   const videoIds = searchItems.map((item: any) => item.id.videoId as string).join(",");
 
-  // Step 2: fetch contentDetails for duration (needed to exclude Shorts)
+  // Step 2: fetch contentDetails (duration) + statistics (viewCount) in one call
   const detailData = await ytGet("videos", {
-    part: "snippet,contentDetails",
+    part: "snippet,contentDetails,statistics",
     id: videoIds,
   }) as any;
 
@@ -151,6 +152,7 @@ export async function fetchChannelVideos(
       publishedAt: item.snippet.publishedAt,
       duration: item.contentDetails?.duration ?? "",
       thumbnailUrl: `https://img.youtube.com/vi/${vid}/maxresdefault.jpg`,
+      viewCount: parseInt(item.statistics?.viewCount ?? "0", 10),
     });
   }
 

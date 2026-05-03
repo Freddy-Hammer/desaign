@@ -32,7 +32,7 @@ export function mapToRawItem(video: VideoDetails, channelUrl: string): RawItem {
       channel_name: channelName,
       video_id: video.videoId,
       duration: video.duration,
-      view_count: null,
+      view_count: video.viewCount,
       collected_by: "youtube-research-agent",
       collection_reason: "Collected from monitored channel within freshness window",
     },
