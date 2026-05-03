@@ -91,6 +91,19 @@ async function main() {
     };
 
     try {
+      // Guard against duplicates if the workflow runs twice or a previous run
+      // partially failed before updating raw_items status to 'approved'.
+      const { data: existing } = await sb
+        .from("posts")
+        .select("id")
+        .eq("link", postData.link)
+        .maybeSingle();
+      if (existing) {
+        await sb.from("raw_items").update({ status: "approved", processed_post_id: existing.id }).eq("id", item.id);
+        console.log(`  ⟳ already published, skipped: ${postData.title}`);
+        continue;
+      }
+
       const { data: inserted, error: ie } = await sb
         .from("posts")
         .insert([postData])

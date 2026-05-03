@@ -72,21 +72,12 @@ function parseDurationSeconds(iso: string): number {
 
 /**
  * Detects Shorts using only YouTube API data — no extra HTTP requests, works in CI.
- * Rules:
- *   ≤ 60s  → always a Short
- *   61–180s → Short if title/description/tags contain #shorts or #short
- *   > 180s → never a Short (YouTube Shorts max is ~3 min)
+ * Threshold is 3 minutes (180s): YouTube Shorts max out at ~3 min, so anything
+ * ≤ 180s is excluded to be safe. No hashtag heuristics — duration is definitive.
  */
 function isLikelyShort(item: any): boolean {
   const secs = parseDurationSeconds(item.contentDetails?.duration ?? "");
-  if (secs <= 60) return true;
-  if (secs > 180) return false;
-  const text = [
-    item.snippet?.title ?? "",
-    item.snippet?.description ?? "",
-    ...(item.snippet?.tags ?? []),
-  ].join(" ").toLowerCase();
-  return /#shorts?\b/.test(text);
+  return secs <= 180;
 }
 
 /**
