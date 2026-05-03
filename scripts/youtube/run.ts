@@ -50,6 +50,11 @@ const CHANNELS = channelsArg
 
 const FRESHNESS_DAYS = readNumberArg("--freshness", DEFAULT_FRESHNESS_DAYS);
 const MAX_ITEMS_PER_CHANNEL = readNumberArg("--max-items", DEFAULT_MAX_ITEMS_PER_CHANNEL);
+// --top=N: after dedup, keep only the N most recent items (sorted by publishedAt desc).
+// --one-per-channel: enforce at most one item per channel in the final selection.
+// Both flags are designed for automated runs; manual runs leave them unset.
+const TOP_N = readNumberArg("--top", Infinity);
+const ONE_PER_CHANNEL = process.argv.includes("--one-per-channel");
 
 async function main() {
   const publishedAfter = new Date();
@@ -93,8 +98,29 @@ async function main() {
     ? await findExisting(dedupInputs)
     : new Set<string>(); // skip Supabase call in dry-run
 
-  const newItems = allCandidates.filter(({ item }) => !existing.has(item.source_url));
+  let newItems = allCandidates.filter(({ item }) => !existing.has(item.source_url));
   const dupCount = allCandidates.length - newItems.length;
+
+  // --top / --one-per-channel selection (used by the daily automated workflow).
+  // Sort newest-first, optionally enforce one item per channel, then cap at TOP_N.
+  if (ONE_PER_CHANNEL || TOP_N < Infinity) {
+    newItems.sort((a, b) =>
+      new Date(b.item.raw_published_at ?? 0).getTime() -
+      new Date(a.item.raw_published_at ?? 0).getTime()
+    );
+    if (ONE_PER_CHANNEL) {
+      const seenChannels = new Set<string>();
+      newItems = newItems.filter(({ channelUrl }) => {
+        if (seenChannels.has(channelUrl)) return false;
+        seenChannels.add(channelUrl);
+        return true;
+      });
+    }
+    if (TOP_N < Infinity) {
+      newItems = newItems.slice(0, TOP_N);
+    }
+    console.log(`Selection: ${newItems.length} item(s) after top/one-per-channel filter`);
+  }
 
   // Auto-reject rows with no thumbnail so they preserve the dedup invariant
   // but never appear in the human review queue.
