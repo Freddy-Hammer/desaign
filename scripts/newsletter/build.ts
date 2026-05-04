@@ -209,7 +209,7 @@ function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: s
   </label>
   <label>
     <input type="checkbox" id="picks-only" onchange="applyFilters()" />
-    Show only ★ picks
+    Show checked only
   </label>
   <div class="spacer"></div>
   <button class="muted" onclick="selectVisible()">Select all visible</button>
@@ -445,7 +445,12 @@ function setCoverPost(id) {
   coverPostId = id;
   selected.delete(id); // not in body
   var row = document.querySelector('.post-row[data-id="' + CSS.escape(id) + '"]');
-  if (row) { row.classList.remove('checked'); row.classList.add('cover-active'); }
+  if (row) {
+    row.classList.remove('checked');
+    row.classList.add('cover-active');
+    var cb = row.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = false;
+  }
 }
 
 function clearCoverPost() {
@@ -508,6 +513,8 @@ function updateCounts() {
   document.getElementById('ab-selected').textContent = total;
   document.getElementById('btn-generate').disabled = total === 0;
   document.getElementById('btn-mark-sent').disabled = total === 0;
+  // Re-apply filters live so "show checked only" stays accurate as selection changes.
+  if (document.getElementById('picks-only').checked) applyFilters();
 }
 
 function applyFilters() {
@@ -520,10 +527,12 @@ function applyFilters() {
   document.querySelectorAll('.post-row').forEach(function(row) {
     var ts = parseInt(row.getAttribute('data-ts'), 10);
     var rowType = row.getAttribute('data-type');
-    var rowStatus = row.getAttribute('data-status');
+    var id = row.getAttribute('data-id');
+    var isJob = row.getAttribute('data-kind') === 'job';
+    var isChecked = isJob ? selectedJobs.has(id) : (selected.has(id) || coverPostId === id);
     var match = ts >= cutoff
       && (type === 'all' || rowType === type)
-      && (!picksOnly || rowStatus === 'queued');
+      && (!picksOnly || isChecked);
     row.classList.toggle('hidden', !match);
     if (match) visible++;
   });
