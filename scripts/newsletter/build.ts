@@ -209,7 +209,7 @@ function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: s
   </label>
   <label>
     <input type="checkbox" id="picks-only" onchange="applyFilters()" />
-    Show checked only
+    Newsletter posts only
   </label>
   <div class="spacer"></div>
   <button class="muted" onclick="selectVisible()">Select all visible</button>
