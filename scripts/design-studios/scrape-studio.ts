@@ -218,6 +218,17 @@ export async function scrapeStudio(name: string, workUrl: string, limit?: number
   const allCases = extractCases($, workUrl, name);
   const cases = limit && limit > 0 ? allCases.slice(0, limit) : allCases;
 
+  // If the same thumbnail URL appears on more than one case it's a listing-page
+  // placeholder (one shared hero/video cover matched by the sibling search).
+  // Null those out so fetchProjectThumbnail resolves a unique image per case.
+  const thumbCounts = new Map<string, number>();
+  for (const c of cases) {
+    if (c.thumbnailUrl) thumbCounts.set(c.thumbnailUrl, (thumbCounts.get(c.thumbnailUrl) ?? 0) + 1);
+  }
+  for (const c of cases) {
+    if (c.thumbnailUrl && (thumbCounts.get(c.thumbnailUrl) ?? 0) > 1) c.thumbnailUrl = null;
+  }
+
   // Resolve missing thumbnails by fetching each project page individually.
   // Handles studios that show videos (not images) in their work listing.
   const missing = cases.filter((c) => !c.thumbnailUrl);

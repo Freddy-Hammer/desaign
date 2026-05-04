@@ -11,9 +11,15 @@ Automate the full content pipeline: ask the user a short questionnaire → run t
 Present three questions in a single `AskUserQuestion` call. The user can pick a preset *or* type a custom number via the auto-provided "Other" option — accept any positive integer.
 
 **Question 1 — Sources** (`multiSelect: true`, header "Sources")
+- "All" — Run all sources (YouTube + Design Studios + Showcases + Instagram)
 - "YouTube" — Pull recent videos from monitored YouTube channels
 - "Design Studios" — Scrape case studies from monitored design studios
 - "Showcases" — Pick today's site of the day from Awwwards / TheFWA / CSSDA
+- "Instagram" — Manually add Instagram posts (you'll paste image + post URLs)
+
+**Notes on "All":**
+- If the user selects "All", treat it as if they selected YouTube + Design Studios + Showcases + Instagram simultaneously.
+- "All" and individual source options are mutually exclusive — if "All" is selected, ignore any other individual picks.
 
 **Question 2 — Max items per channel/studio** (`multiSelect: false`, header "Max items")
 - "5"
@@ -31,6 +37,24 @@ Present three questions in a single `AskUserQuestion` call. The user can pick a 
 - `freshness` only affects YouTube. Design studio pages don't carry reliable publish dates, so freshness is ignored there.
 - If the user hasn't selected YouTube, you may skip Question 3 — but it's fine to ask it anyway and ignore the answer.
 - If the user picks "Other" for max items / freshness, parse the integer they typed. Ignore non-numeric input and fall back to the recommended default.
+
+## Step 1.5 — Collect Instagram post URLs upfront (if Instagram selected)
+
+Skip this step entirely if the user did NOT select "Instagram" (or "All") in Question 1.
+
+**Do this immediately after the questionnaire — before running any collectors.** The user wants to give all their input upfront, not be interrupted mid-pipeline.
+
+Ask **in plain text** (do NOT use `AskUserQuestion`):
+
+> Paste image URL + post link for each Instagram post. One post per line:
+>
+> `image=https://...cdninstagram.com/.../img.jpg link=https://www.instagram.com/p/ABC123/`
+>
+> You can also include `title=...` after the link for a short headline. Reply "skip" if you changed your mind.
+
+Parse each line the user provides and store the `image`, `link`, (optional) `title`, and (optional) `author` values. You'll run the add script in Step 4.5 after the automated collectors finish.
+
+If the user replies "no", "skip", "none", or anything that doesn't contain `image=` and `link=`, treat Instagram count as 0 new and skip Step 4.5.
 
 ## Step 2 — Confirm channel / studio lists (only if needed)
 
@@ -92,31 +116,17 @@ Capture from the output:
 
 Do NOT pass `--max-items` or `--freshness` here — the showcase collector picks exactly one per source per run by design.
 
-## Step 4.5 — Optional: manually-added Instagram posts
+## Step 4.5 — Process Instagram posts collected in Step 1.5
 
-Instagram has no usable public API, so this step is manual: the user pastes one or more posts they've found, and the script inserts them into `raw_items` so they show up in the review queue alongside the auto-collected items.
+Skip if the user skipped or provided no valid posts in Step 1.5.
 
-After Studios finishes (or after YouTube if Studios wasn't selected), ask the user **in plain text** (do NOT use `AskUserQuestion` — the format is too constrained for multi-line URL pairs):
+For each parsed post from Step 1.5, run:
 
-> Any Instagram posts to add this round?
->
-> If yes, paste image URL + post link for each one. One post per line, in this format:
->
-> `image=https://...cdninstagram.com/.../img.jpg link=https://www.instagram.com/p/ABC123/`
->
-> You can also include `title=...` after the link for a short headline. Reply "no" or "skip" to continue without adding any.
+```
+npx tsx scripts/instagram/add.ts --image=<image> --link=<link> [--title=<title>] [--author=<author>]
+```
 
-For each line the user replies with:
-1. Parse `image=`, `link=`, and (optional) `title=` / `author=` segments. Be tolerant of whitespace and ordering.
-2. Run:
-   ```
-   npx tsx scripts/instagram/add.ts --image=<image> --link=<link> [--title=<title>] [--author=<author>]
-   ```
-3. Capture inserted vs skipped (duplicate) outcomes.
-
-If the user replies "no", "skip", "none", or anything that doesn't match an `image=...link=...` pair, move on without running the script.
-
-Include the Instagram tally in the Step 7 summary (see template below).
+Capture inserted vs skipped (duplicate) outcomes. Include the tally in the Step 7 summary.
 
 ## Step 5 — Generate the review report
 

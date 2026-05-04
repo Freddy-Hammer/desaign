@@ -112,6 +112,11 @@ function renderCard(item: any): string {
         month: "short", day: "numeric", year: "numeric",
       })
     : "";
+  const authorLabel =
+    item.content_type === "case_study"
+      ? (item.metadata?.studio_name ?? item.source ?? item.raw_author ?? "")
+      : (item.raw_author ?? "");
+  const isShowcase = item.content_type === "showcase";
   return `<div class="card" id="card-${item.id}">
   <div class="card-thumb">
     <img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="autoRejectBroken('${item.id}')" />
@@ -121,9 +126,10 @@ function renderCard(item: any): string {
       <a href="${esc(item.source_url)}" target="_blank" rel="noopener">${esc(item.raw_title ?? "(no title)")}</a>
     </div>
     <div class="card-meta">
-      <span>${esc(item.raw_author ?? "")}</span>
+      <span>${esc(authorLabel)}</span>
       ${date ? `<span>${date}</span>` : ""}
       ${dur ? `<span class="badge">${dur}</span>` : ""}
+      ${isShowcase ? `<span class="badge">Site of the Day</span>` : ""}
     </div>
     <div class="card-actions">
       <a class="btn btn-open" href="${esc(item.source_url)}" target="_blank" rel="noopener">Open ↗</a>
@@ -141,7 +147,7 @@ const CONTENT_TYPE_LABELS: Record<string, string> = {
   case_study: "Cases",
   article: "Articles",
   image: "Images",
-  showcase: "Sites",
+  showcase: "Sites of the Day",
 };
 
 function contentTypeLabel(t: string): string {
@@ -1157,6 +1163,7 @@ function buildXText() {
   });
   lines.push('');
   lines.push(X_FOOTER_PREFIX + SITE_URL);
+  lines.push('\\n#Design #AI #DesignAI #UX #AITools');
   return lines.join('\\n');
 }
 

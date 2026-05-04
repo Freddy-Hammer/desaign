@@ -31,6 +31,7 @@ const DEFAULT_CHANNELS = [
   "https://www.youtube.com/@skillleapai",
   "https://www.youtube.com/@malewiczhype",
   "https://www.youtube.com/@ailabs-393",
+  "https://www.youtube.com/@figmaweave",
 ];
 const DEFAULT_FRESHNESS_DAYS = 7;
 const DEFAULT_MAX_ITEMS_PER_CHANNEL = 50;
