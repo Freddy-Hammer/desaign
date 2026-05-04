@@ -87,8 +87,10 @@ Capture and parse the output for:
 Skip if Design Studios wasn't selected.
 
 ```
-npx tsx scripts/design-studios/run.ts --insert --max-items=<N>
+npx tsx scripts/design-studios/run.ts --insert
 ```
+
+Do NOT pass `--max-items` here — the default is hardcoded to 1 per studio (always the newest case from the work listing). The questionnaire's max-items value only applies to YouTube.
 
 Add `--studios="..."` only if the user supplied a custom list.
 

@@ -34,7 +34,9 @@ const DEFAULT_STUDIOS: { name: string; url: string }[] = [
 ];
 // -----------------------------
 
-const DEFAULT_MAX_ITEMS_PER_STUDIO = 10;
+// 1 case per studio per run — always the newest item from the work listing.
+// Dedup ensures old cases are never re-inserted; new cases appear at position 1.
+const DEFAULT_MAX_ITEMS_PER_STUDIO = 1;
 
 const INSERT_MODE = process.argv.includes("--insert");
 
