@@ -138,6 +138,7 @@ function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: s
 
     .post-row { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 8px; transition: border-left 0.15s, opacity 0.2s; border-left: 4px solid transparent; }
     .post-row.checked { border-left-color: #16a34a; }
+    .post-row.cover-active { border-left-color: #eab308; background: #fffbeb; }
     .post-row.hidden { display: none; }
     .post-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
     .post-row .thumb { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; background: #f0f0f0; flex-shrink: 0; }
@@ -218,7 +219,7 @@ function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: s
 <div class="container">
   <div class="banner-card">
     <h3>★ Cover image (optional)</h3>
-    <p class="banner-help">Paste an Instagram image URL — it&apos;ll appear at the very top of the newsletter, above all posts.</p>
+    <p class="banner-help">Paste an Instagram image URL — it&apos;ll appear at the very top of the newsletter, above all posts. Checking an Instagram post below auto-fills this and removes it from the body.</p>
     <input type="text" id="banner-img" class="banner-input" placeholder="Image URL — e.g. https://...cdninstagram.com/.../image.jpg" />
     <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — e.g. https://www.instagram.com/p/..." />
   </div>
@@ -258,8 +259,13 @@ const POSTS_MAP = ${safeJson(postsMap)};
 const JOBS_MAP = ${safeJson(jobsMap)};
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const selected = new Set();        // post ids
+const selected = new Set();        // post ids (body items only — cover is excluded)
 const selectedJobs = new Set();    // job ids — kept separate so markSent hits the right table
+var coverPostId = null;            // id of the Instagram post currently used as cover
+
+function isInstagramPost(p) {
+  return (p.source || '').toLowerCase().indexOf('instagram') !== -1;
+}
 
 function classifyType(p) {
   var src = (p.source || '').toLowerCase();
@@ -293,8 +299,12 @@ function renderPostRow(p) {
     ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
   var isQueued = p.newsletter_status === 'queued';
+  var isIg = isInstagramPost(p);
   var queuedBadge = isQueued
     ? '<span class="badge" style="background:#fef3c7;color:#92400e;">★ picked</span>'
+    : '';
+  var igBadge = isIg
+    ? '<span class="badge" style="background:#fef3c7;color:#92400e;">📸 sets cover</span>'
     : '';
   var rowClass = isQueued ? 'post-row checked' : 'post-row';
   var checkedAttr = isQueued ? 'checked' : '';
@@ -310,6 +320,7 @@ function renderPostRow(p) {
     +     '<span class="badge">' + escHtml(p.category || '') + '</span>'
     +     '<span>' + escHtml(date) + '</span>'
     +     queuedBadge
+    +     igBadge
     +   '</div>'
     + '</div>'
     + '<a class="open" href="' + escAttr(p.link) + '" target="_blank" rel="noopener">↗</a>'
@@ -413,16 +424,63 @@ function renderList() {
     }
   });
 
+  autoSetInstagramCover();
   applyFilters();
+}
+
+function setCoverPost(id) {
+  var p = POSTS_MAP[id];
+  if (!p) return;
+  // Clear previous cover row
+  if (coverPostId && coverPostId !== id) {
+    var prevRow = document.querySelector('.post-row[data-id="' + CSS.escape(coverPostId) + '"]');
+    if (prevRow) {
+      prevRow.classList.remove('cover-active');
+      var prevCb = prevRow.querySelector('input[type=checkbox]');
+      if (prevCb) prevCb.checked = false;
+    }
+  }
+  document.getElementById('banner-img').value = p.thumbnail_url || '';
+  document.getElementById('banner-link').value = p.link || '';
+  coverPostId = id;
+  selected.delete(id); // not in body
+  var row = document.querySelector('.post-row[data-id="' + CSS.escape(id) + '"]');
+  if (row) { row.classList.remove('checked'); row.classList.add('cover-active'); }
+}
+
+function clearCoverPost() {
+  if (!coverPostId) return;
+  var row = document.querySelector('.post-row[data-id="' + CSS.escape(coverPostId) + '"]');
+  if (row) { row.classList.remove('cover-active'); }
+  document.getElementById('banner-img').value = '';
+  document.getElementById('banner-link').value = '';
+  coverPostId = null;
+}
+
+function autoSetInstagramCover() {
+  // If any pre-selected (★ picked) post is an Instagram post, set it as cover.
+  var igId = null;
+  selected.forEach(function(id) { if (!igId && isInstagramPost(POSTS_MAP[id])) igId = id; });
+  if (igId) { setCoverPost(igId); showToast('Instagram image auto-set as cover ✓'); }
 }
 
 function onToggle(cb) {
   var id = cb.getAttribute('data-id');
   var row = cb.closest('.post-row');
+  var p = POSTS_MAP[id];
   if (cb.checked) {
+    if (p && isInstagramPost(p)) {
+      // Instagram posts go to cover, not body
+      setCoverPost(id);
+      cb.checked = false; // visually unchecked in body; cover-active border shows it's used
+      showToast('Instagram image set as cover ✓');
+      updateCounts();
+      return;
+    }
     selected.add(id);
     row.classList.add('checked');
   } else {
+    if (coverPostId === id) { clearCoverPost(); updateCounts(); return; }
     selected.delete(id);
     row.classList.remove('checked');
   }
