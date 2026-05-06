@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
+import { AnalyticsRouteTracker } from "./components/analytics-route-tracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +38,9 @@ export default function RootLayout({
             gtag('config', 'G-L39CHE00L0');
           `}
         </Script>
+        <Suspense fallback={null}>
+          <AnalyticsRouteTracker />
+        </Suspense>
       </body>
     </html>
   );
