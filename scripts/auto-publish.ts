@@ -19,7 +19,7 @@ const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 const SITE_URL = "https://desaign-radar.vercel.app";
 
 function deriveCategory(contentType: string): string {
-  if (contentType === "showcase") return "Showcase";
+  if (contentType === "showcase") return "Site of the Day";
   if (contentType === "case_study") return "Case Study";
   if (contentType === "video") return "Video";
   return "Design + AI";

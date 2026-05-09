@@ -168,7 +168,7 @@ function buildHtml(
   newsletterEnabled: boolean,
 ): string {
   const generatedAt = new Date().toLocaleString();
-  const defaultCategories = ["AI Tools", "Design", "UX", "Tutorial", "Case Study", "News", "Tool", "Showcase"];
+  const defaultCategories = ["AI Tools", "Design", "UX", "Tutorial", "Case Study", "News", "Tool", "Site of the Day"];
   const allCategories = [...new Set([...existingCategories, ...defaultCategories])].sort();
 
   const itemsMap = Object.fromEntries(items.map((i) => [i.id, i]));
@@ -496,7 +496,7 @@ function removeCard(id) {
 
 function buildAutoPostData(item) {
   var category;
-  if (item.content_type === 'showcase') category = 'Showcase';
+  if (item.content_type === 'showcase') category = 'Site of the Day';
   else if (item.content_type === 'case_study') category = 'Case Study';
   else category = guessCategory(item.raw_title, item.raw_description);
   return {
