@@ -57,7 +57,7 @@ export const TOOLS: DictionaryEntry[] = [
   { name: "Unity", patterns: ["unity 3d", "\\bunity\\b"] },
   { name: "Unreal Engine", patterns: ["unreal engine", "unreal"] },
   { name: "Lottie", patterns: ["lottie"] },
-  { name: "Rive", patterns: ["rive\\b", "rive\\.app"] },
+  { name: "Rive", patterns: ["\\brive\\b", "rive\\.app"] },
   { name: "Remotion", patterns: ["remotion"] },
   { name: "Runway", patterns: ["runway ml", "runwayml", "runway"] },
 
