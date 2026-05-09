@@ -24,10 +24,12 @@ export function HorizontalBarChart({
   data,
   totalJobs,
   emptyLabel,
+  onBarClick,
 }: {
   data: BarDatum[];
   totalJobs: number;
   emptyLabel: string;
+  onBarClick?: (name: string) => void;
 }) {
   // Recompute height: 28px per row + padding. Keeps tall lists readable.
   const height = Math.max(180, data.length * 28 + 24);
@@ -45,6 +47,20 @@ export function HorizontalBarChart({
     responsive: true,
     maintainAspectRatio: false,
     layout: { padding: { right: 32 } },
+    onClick: onBarClick
+      ? (_evt, elements) => {
+          const el = elements[0];
+          if (!el) return;
+          const name = data[el.index]?.name;
+          if (name) onBarClick(name);
+        }
+      : undefined,
+    onHover: onBarClick
+      ? (event, elements) => {
+          const target = (event.native?.target ?? null) as HTMLElement | null;
+          if (target) target.style.cursor = elements.length > 0 ? "pointer" : "default";
+        }
+      : undefined,
     plugins: {
       legend: { display: false },
       tooltip: {

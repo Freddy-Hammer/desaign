@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Job, JobCategory } from "../types/job";
 import { isRemote } from "../lib/job-format";
 import { JobCard } from "../components/job-card";
@@ -16,6 +17,11 @@ const CATEGORIES: (JobCategory | "All")[] = [
 const PAGE_SIZE = 24;
 
 export function JobBoard({ jobs }: { jobs: Job[] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const skillFilter = searchParams.get("skill");
+  const toolFilter = searchParams.get("tool");
+
   const [activeCategory, setActiveCategory] = useState<(typeof CATEGORIES)[number]>("All");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [query, setQuery] = useState("");
@@ -23,31 +29,45 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeCategory, remoteOnly, query]);
+  }, [activeCategory, remoteOnly, query, skillFilter, toolFilter]);
+
+  const clearTagFilter = () => {
+    // Drops both skill and tool params; keeps any others if added later.
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("skill");
+    params.delete("tool");
+    const qs = params.toString();
+    router.replace(qs ? `/jobs?${qs}` : "/jobs", { scroll: false });
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return jobs.filter((j) => {
       if (activeCategory !== "All" && j.category !== activeCategory) return false;
       if (remoteOnly && !isRemote(j.location)) return false;
+      if (skillFilter && !(j.skills ?? []).includes(skillFilter)) return false;
+      if (toolFilter && !(j.tools ?? []).includes(toolFilter)) return false;
       if (q) {
         const blob = `${j.title} ${j.company}`.toLowerCase();
         if (!blob.includes(q)) return false;
       }
       return true;
     });
-  }, [jobs, activeCategory, remoteOnly, query]);
+  }, [jobs, activeCategory, remoteOnly, query, skillFilter, toolFilter]);
 
   const visible = filtered.slice(0, visibleCount);
 
-  // Per-category counts for the chip labels — based on remote+query filters,
-  // so the chip count reflects what would actually appear if you clicked it.
+  // Per-category counts for the chip labels — based on the other active
+  // filters, so the chip count reflects what would actually appear if you
+  // clicked it.
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { All: 0 };
     for (const c of CATEGORIES) counts[c] = 0;
     const q = query.trim().toLowerCase();
     for (const j of jobs) {
       if (remoteOnly && !isRemote(j.location)) continue;
+      if (skillFilter && !(j.skills ?? []).includes(skillFilter)) continue;
+      if (toolFilter && !(j.tools ?? []).includes(toolFilter)) continue;
       if (q) {
         const blob = `${j.title} ${j.company}`.toLowerCase();
         if (!blob.includes(q)) continue;
@@ -56,7 +76,7 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
       counts[j.category] = (counts[j.category] ?? 0) + 1;
     }
     return counts;
-  }, [jobs, remoteOnly, query]);
+  }, [jobs, remoteOnly, query, skillFilter, toolFilter]);
 
   const pillBase =
     "rounded-full border px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] transition cursor-pointer select-none";
@@ -85,6 +105,25 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
             </button>
           ))}
         </div>
+
+        {(skillFilter || toolFilter) && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+              Filter from charts:
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand-deep bg-brand-deep px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+              {skillFilter ? `Skill: ${skillFilter}` : `Tool: ${toolFilter}`}
+              <button
+                type="button"
+                onClick={clearTagFilter}
+                aria-label="Clear chart filter"
+                className="-mr-1 ml-1 rounded-full px-1.5 leading-none text-white/80 transition hover:bg-white/15 hover:text-white"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-700 transition hover:border-zinc-400">
@@ -120,6 +159,7 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
               setActiveCategory("All");
               setRemoteOnly(false);
               setQuery("");
+              if (skillFilter || toolFilter) clearTagFilter();
             }}
             className="mt-4 rounded-full border border-zinc-300 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-zinc-700 transition hover:border-zinc-500 hover:text-zinc-950"
           >

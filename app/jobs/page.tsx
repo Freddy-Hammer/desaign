@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Job } from "../types/job";
 import { SiteHeader } from "../components/site-header";
@@ -9,7 +10,7 @@ export const revalidate = 21600; // 6 hours
 export default async function JobsPage() {
   const { data, error } = await supabase
     .from("jobs")
-    .select("id,company,title,location,url,posted_date,department,platform,category,active,source,first_seen_at,last_seen_at")
+    .select("id,company,title,location,url,posted_date,department,platform,category,active,source,first_seen_at,last_seen_at,skills,tools")
     .eq("active", true)
     .order("posted_date", { ascending: false, nullsFirst: false });
 
@@ -52,7 +53,11 @@ export default async function JobsPage() {
         </div>
       )}
 
-      {!error && jobs.length > 0 && <JobBoard jobs={jobs} />}
+      {!error && jobs.length > 0 && (
+        <Suspense fallback={null}>
+          <JobBoard jobs={jobs} />
+        </Suspense>
+      )}
 
       <section className="mx-auto max-w-7xl px-5 pb-12 sm:px-8">
         <p className="rounded-lg border border-zinc-200 bg-white/60 p-5 text-xs leading-6 text-zinc-500">

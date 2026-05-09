@@ -37,11 +37,11 @@ export const TOOLS: DictionaryEntry[] = [
   { name: "Whimsical", patterns: ["whimsical"] },
   { name: "Notion", patterns: ["notion"] },
   { name: "Linear", patterns: ["linear app", "linear\\.app"] },
-  { name: "Jira", patterns: ["jira"] },
-  { name: "Confluence", patterns: ["confluence"] },
+  // Jira / Confluence / Trello intentionally omitted — counted under the
+  // "Project Management" skill instead.
   { name: "Slack", patterns: ["slack"] },
-  { name: "Asana", patterns: ["asana"] },
-  { name: "Trello", patterns: ["trello"] },
+  // Asana intentionally omitted from tools — counted under the
+  // "Project Management" skill instead. Same for Jira/Confluence/Trello.
   { name: "Airtable", patterns: ["airtable"] },
 
   // Motion / video / 3D
@@ -85,8 +85,9 @@ export const TOOLS: DictionaryEntry[] = [
   { name: "Abstract", patterns: ["abstract\\.com"] },
 
   // Languages / frameworks (often listed in design-eng / hybrid roles)
-  { name: "HTML", patterns: ["\\bhtml5?\\b"] },
-  { name: "CSS", patterns: ["\\bcss3?\\b"] },
+  // HTML and CSS are counted as a single competency since they almost
+  // always appear together in job postings.
+  { name: "HTML/CSS", patterns: ["\\bhtml5?\\b", "\\bcss3?\\b"] },
   { name: "JavaScript", patterns: ["javascript", "\\bjs\\b"] },
   { name: "TypeScript", patterns: ["typescript", "\\bts\\b"] },
   { name: "React", patterns: ["react\\b", "react\\.js", "reactjs"] },
@@ -146,6 +147,7 @@ export const SKILLS: DictionaryEntry[] = [
   { name: "Data-Driven", patterns: ["data[- ]?driven", "data[- ]?informed"] },
   { name: "A/B Testing", patterns: ["a/?b test"] },
   { name: "Agile", patterns: ["\\bagile\\b", "\\bscrum\\b"] },
+  { name: "Project Management", patterns: ["project management", "project manage", "\\bpm\\b skill", "\\basana\\b", "\\bjira\\b", "\\bconfluence\\b", "\\btrello\\b"] },
   { name: "Workshop Facilitation", patterns: ["facilitat(e|ing) workshop", "design sprint"] },
 
   // AI fluency

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { HorizontalBarChart, type BarDatum } from "./charts";
 import { positionsForTitle, POSITIONS } from "@/lib/positions";
 
@@ -82,10 +83,17 @@ function TopThree({ items, label }: { items: BarDatum[]; label: string }) {
 const PERIOD_ORDER: PeriodPreset[] = ["all", "7d", "30d", "90d", "custom"];
 
 export function SkillsToolsExplorer({ jobs }: { jobs: ExplorerJob[] }) {
+  const router = useRouter();
   const [position, setPosition] = useState<string>("all");
   const [period, setPeriod] = useState<PeriodPreset>("all");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
+
+  const goToJobs = (kind: "skill" | "tool", name: string) => {
+    const params = new URLSearchParams();
+    params.set(kind, name);
+    router.push(`/jobs?${params.toString()}`);
+  };
 
   // Compute job → positions[] once. Memoize on jobs identity (server-stable).
   const jobsWithPositions = useMemo(
@@ -97,22 +105,33 @@ export function SkillsToolsExplorer({ jobs }: { jobs: ExplorerJob[] }) {
     [jobs],
   );
 
-  // Position counts for the dropdown — only positions that exist in current data.
+  // Position counts for the dropdown — only positions that exist in current
+  // data. Jobs whose title matches no known position fall into "Uncategorized"
+  // so a new role type added to the board surfaces in the filter even before
+  // the taxonomy is updated.
   const positionOptions = useMemo(() => {
     const counts = new Map<string, number>();
+    let uncategorized = 0;
     for (const j of jobsWithPositions) {
+      if (j.positions.length === 0) uncategorized++;
       for (const p of j.positions) counts.set(p, (counts.get(p) ?? 0) + 1);
     }
-    return POSITIONS.map((p) => p.name)
+    const list = POSITIONS.map((p) => p.name)
       .filter((n) => counts.has(n))
       .map((n) => ({ name: n, count: counts.get(n) ?? 0 }))
       .sort((a, b) => b.count - a.count);
+    if (uncategorized > 0) {
+      list.push({ name: "Uncategorized", count: uncategorized });
+    }
+    return list;
   }, [jobsWithPositions]);
 
   const filteredJobs = useMemo(() => {
     let out = jobsWithPositions;
 
-    if (position !== "all") {
+    if (position === "Uncategorized") {
+      out = out.filter((j) => j.positions.length === 0);
+    } else if (position !== "all") {
       out = out.filter((j) => j.positions.includes(position));
     }
 
@@ -268,11 +287,15 @@ export function SkillsToolsExplorer({ jobs }: { jobs: ExplorerJob[] }) {
               {filteredJobs.length} job{filteredJobs.length === 1 ? "" : "s"} in this slice. Bars
               show how many mention each skill.
             </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Click a bar to see matching jobs.
+            </p>
             <div className="mt-6">
               <HorizontalBarChart
                 data={skills}
                 totalJobs={filteredJobs.length}
                 emptyLabel="No skill matches in this slice."
+                onBarClick={(name) => goToJobs("skill", name)}
               />
             </div>
           </div>
@@ -283,11 +306,15 @@ export function SkillsToolsExplorer({ jobs }: { jobs: ExplorerJob[] }) {
               {filteredJobs.length} job{filteredJobs.length === 1 ? "" : "s"} in this slice. Bars
               show how many mention each tool.
             </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Click a bar to see matching jobs.
+            </p>
             <div className="mt-6">
               <HorizontalBarChart
                 data={tools}
                 totalJobs={filteredJobs.length}
                 emptyLabel="No tool matches in this slice."
+                onBarClick={(name) => goToJobs("tool", name)}
               />
             </div>
           </div>

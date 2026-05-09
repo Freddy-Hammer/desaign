@@ -20,4 +20,6 @@ export interface Job {
   source: string;
   first_seen_at: string;
   last_seen_at: string;
+  skills: string[] | null;
+  tools: string[] | null;
 }

@@ -7,7 +7,7 @@ export async function JobsStrip() {
   const [{ data: latest }, { count }] = await Promise.all([
     supabase
       .from("jobs")
-      .select("id,company,title,location,url,posted_date,department,platform,category,active,source,first_seen_at,last_seen_at")
+      .select("id,company,title,location,url,posted_date,department,platform,category,active,source,first_seen_at,last_seen_at,skills,tools")
       .eq("active", true)
       .order("posted_date", { ascending: false, nullsFirst: false })
       .limit(3),
