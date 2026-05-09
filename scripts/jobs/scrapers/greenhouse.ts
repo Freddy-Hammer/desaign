@@ -1,5 +1,6 @@
 import { Job, jobId } from "../schema";
 import { categorize } from "../categorize";
+import { stripHtml } from "../lib/text";
 
 const USER_AGENT = "DesAIgn Radar Job Aggregator (desaign-radar.vercel.app)";
 
@@ -10,6 +11,7 @@ interface GreenhouseJob {
   updated_at?: string;
   first_published?: string;
   absolute_url: string;
+  content?: string;
   location?: { name?: string };
   offices?: { name?: string }[];
   departments?: { name?: string }[];
@@ -23,7 +25,8 @@ export async function fetchGreenhouse(
   company: string,
   slug: string
 ): Promise<Job[]> {
-  const url = `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`;
+  // ?content=true returns the full job description HTML in `content`.
+  const url = `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs?content=true`;
   const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
   if (!res.ok) {
     throw new Error(`Greenhouse ${slug}: HTTP ${res.status}`);
@@ -52,6 +55,7 @@ export async function fetchGreenhouse(
       platform: "greenhouse",
       category: categorize(title, department),
       scraped_at: scrapedAt,
+      description: stripHtml(j.content),
     };
   });
 }

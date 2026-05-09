@@ -1,5 +1,6 @@
 import { Job, jobId } from "../schema";
 import { categorize } from "../categorize";
+import { stripHtml } from "../lib/text";
 
 const USER_AGENT = "DesAIgn Radar Job Aggregator (desaign-radar.vercel.app)";
 
@@ -9,6 +10,11 @@ interface LeverPosting {
   hostedUrl: string;
   applyUrl?: string;
   createdAt?: number;
+  description?: string;
+  descriptionPlain?: string;
+  lists?: { text?: string; content?: string }[];
+  additional?: string;
+  additionalPlain?: string;
   categories?: {
     team?: string;
     department?: string;
@@ -16,6 +22,18 @@ interface LeverPosting {
     commitment?: string;
     allLocations?: string[];
   };
+}
+
+function leverFullDescription(p: LeverPosting): string | null {
+  // Prefer plain-text fields; fall back to HTML stripped. Lever splits the
+  // posting into description (intro), lists (bullets), and additional (footer).
+  const parts: (string | null | undefined)[] = [
+    p.descriptionPlain ?? stripHtml(p.description),
+    ...(p.lists ?? []).map((l) => stripHtml(l.content) ?? l.text ?? ""),
+    p.additionalPlain ?? stripHtml(p.additional),
+  ];
+  const joined = parts.filter(Boolean).join("\n\n").trim();
+  return joined || null;
 }
 
 export async function fetchLever(company: string, slug: string): Promise<Job[]> {
@@ -48,6 +66,7 @@ export async function fetchLever(company: string, slug: string): Promise<Job[]> 
       platform: "lever",
       category: categorize(title, department),
       scraped_at: scrapedAt,
+      description: leverFullDescription(p),
     };
   });
 }

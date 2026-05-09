@@ -21,6 +21,12 @@ export function SiteHeader() {
             Jobs
           </Link>
           <Link
+            href="/skills-and-tools"
+            className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep md:inline"
+          >
+            Skills &amp; Tools
+          </Link>
+          <Link
             href="/subscribe"
             className="rounded-full bg-zinc-950 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
           >

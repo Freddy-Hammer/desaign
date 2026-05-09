@@ -43,5 +43,6 @@ export function manualEntriesAsJobs(): Job[] {
     platform: m.platform ?? "custom",
     category: m.category ?? categorize(m.title, m.department ?? null),
     scraped_at: scrapedAt,
+    description: null,
   }));
 }

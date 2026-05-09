@@ -59,6 +59,7 @@ async function fetchPentagram(): Promise<Job[]> {
       platform: "custom",
       category: categorize(text, null),
       scraped_at: scrapedAt,
+      description: null,
     });
   });
 

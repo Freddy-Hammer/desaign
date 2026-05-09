@@ -1,5 +1,6 @@
 import { Job, jobId } from "../schema";
 import { categorize } from "../categorize";
+import { stripHtml } from "../lib/text";
 
 const USER_AGENT = "DesAIgn Radar Job Aggregator (desaign-radar.vercel.app)";
 
@@ -17,6 +18,8 @@ interface AshbyJob {
   isRemote?: boolean;
   jobUrl?: string;
   applyUrl?: string;
+  descriptionHtml?: string;
+  descriptionPlain?: string;
   secondaryLocations?: { location?: string; locationName?: string }[];
 }
 
@@ -56,6 +59,7 @@ export async function fetchAshby(company: string, slug: string): Promise<Job[]> 
       platform: "ashby",
       category: categorize(title, department),
       scraped_at: scrapedAt,
+      description: j.descriptionPlain ?? stripHtml(j.descriptionHtml),
     };
   });
 }

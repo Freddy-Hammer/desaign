@@ -29,6 +29,9 @@ export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number }> {
     active: true,
     last_seen_at: now,
     source: "scraper",
+    // Only overwrite description when scraper produced one. Sending null
+    // would clobber a value captured on a previous run for the same id.
+    ...(j.description ? { description: j.description, skills_extracted_at: null } : {}),
   }));
 
   let upserted = 0;

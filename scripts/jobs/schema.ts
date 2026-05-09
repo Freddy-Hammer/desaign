@@ -21,6 +21,7 @@ export interface Job {
   platform: Platform;
   category: JobCategory;
   scraped_at: string;
+  description: string | null;
 }
 
 export function jobId(company: string, title: string, url: string): string {

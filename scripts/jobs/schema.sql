@@ -35,6 +35,18 @@ alter table jobs add column if not exists telegram_sent_at timestamptz default n
 create index if not exists jobs_telegram_unsent_idx on jobs (first_seen_at desc)
   where telegram_sent_at is null and active = true;
 
+-- Skills/tools extraction (stage 1 of /skills-and-tools page).
+-- description: plain-text job posting body, captured by the scrapers and used
+-- as input to the dictionary-based extractor in scripts/jobs/extract-skills-tools.ts.
+-- skills/tools: dictionary keys matched in description (deterministic, re-derivable).
+-- skills_extracted_at: when extraction last ran for this row; null = needs (re-)extract.
+alter table jobs add column if not exists description text default null;
+alter table jobs add column if not exists skills text[] default null;
+alter table jobs add column if not exists tools text[] default null;
+alter table jobs add column if not exists skills_extracted_at timestamptz default null;
+create index if not exists jobs_skills_gin_idx on jobs using gin (skills);
+create index if not exists jobs_tools_gin_idx on jobs using gin (tools);
+
 alter table jobs enable row level security;
 
 -- Public read: active jobs only. Frontend uses anon key.
