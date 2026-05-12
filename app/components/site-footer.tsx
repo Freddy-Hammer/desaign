@@ -49,7 +49,7 @@ export function SiteFooter() {
             rel="noreferrer"
             className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
           >
-            Contact
+            Mail
           </a>
         </div>
       </div>
