@@ -45,7 +45,7 @@ export async function fetchGreenhouse(
     const department = j.departments?.[0]?.name?.trim() || null;
     const posted = j.first_published || j.updated_at || null;
     return {
-      id: jobId(company, title, url),
+      id: jobId(company, url),
       company,
       title,
       location,

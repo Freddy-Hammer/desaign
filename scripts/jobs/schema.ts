@@ -24,10 +24,14 @@ export interface Job {
   description: string | null;
 }
 
-export function jobId(company: string, title: string, url: string): string {
+// ID is hashed from company + URL only. Title is intentionally excluded:
+// companies often rename the same role (same career-page URL) and including
+// the title in the hash would create a duplicate row + a false "new job"
+// every time a title is edited.
+export function jobId(company: string, url: string): string {
   return crypto
     .createHash("sha1")
-    .update(`${company.toLowerCase()}|${title.toLowerCase()}|${url}`)
+    .update(`${company.toLowerCase()}|${url}`)
     .digest("hex")
     .slice(0, 16);
 }

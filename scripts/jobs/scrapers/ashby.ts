@@ -49,7 +49,7 @@ export async function fetchAshby(company: string, slug: string): Promise<Job[]> 
     const department = j.department?.trim() || j.team?.trim() || null;
     const posted = j.publishedAt || j.updatedAt || null;
     return {
-      id: jobId(company, title, url),
+      id: jobId(company, url),
       company,
       title,
       location,

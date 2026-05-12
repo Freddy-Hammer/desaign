@@ -56,7 +56,7 @@ export async function fetchLever(company: string, slug: string): Promise<Job[]> 
     const department = cats.department?.trim() || cats.team?.trim() || null;
     const posted = p.createdAt ? new Date(p.createdAt).toISOString() : null;
     return {
-      id: jobId(company, title, url),
+      id: jobId(company, url),
       company,
       title,
       location,

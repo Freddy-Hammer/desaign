@@ -49,7 +49,7 @@ async function fetchPentagram(): Promise<Job[]> {
     if (!href) return;
     const url = href.startsWith("http") ? href : new URL(href, careersUrl).toString();
     jobs.push({
-      id: jobId(company, text, url),
+      id: jobId(company, url),
       company,
       title: text,
       location: "London, UK", // Pentagram's main office; refine if listings expose locations

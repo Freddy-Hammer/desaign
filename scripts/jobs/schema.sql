@@ -3,7 +3,7 @@
 -- `npx tsx scripts/jobs/index.ts --insert`.
 
 create table if not exists jobs (
-  id text primary key,                              -- sha1(company|title|url) — 16 hex chars
+  id text primary key,                              -- sha1(company|url) — 16 hex chars; title excluded so renames update in place
   company text not null,
   title text not null,
   location text,

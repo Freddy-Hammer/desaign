@@ -33,7 +33,7 @@ export const MANUAL_LISTINGS: ManualEntry[] = [
 export function manualEntriesAsJobs(): Job[] {
   const scrapedAt = new Date().toISOString();
   return MANUAL_LISTINGS.map((m) => ({
-    id: jobId(m.company, m.title, m.url),
+    id: jobId(m.company, m.url),
     company: m.company,
     title: m.title,
     location: m.location,
