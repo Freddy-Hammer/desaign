@@ -10,6 +10,21 @@ export function SiteFooter() {
             Design and AI signals, useful links, and occasional strange image
             experiments from the edge of the feed.
           </p>
+          <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-white/50">
+            <Link
+              href="/privacy"
+              className="transition hover:text-white"
+            >
+              Privacy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/terms"
+              className="transition hover:text-white"
+            >
+              Terms &amp; takedown
+            </Link>
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-3">

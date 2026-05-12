@@ -78,6 +78,16 @@ export default async function SubscribePage() {
           <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">
             Free · no spam · unsubscribe anytime
           </p>
+          <p className="mx-auto mt-3 max-w-md text-[11px] leading-5 text-zinc-500">
+            By subscribing you agree to our{" "}
+            <Link
+              href="/privacy"
+              className="font-semibold text-brand-deep underline decoration-brand-deep/30 underline-offset-2 hover:decoration-brand-deep"
+            >
+              Privacy Policy
+            </Link>
+            . Your email is sent to Beehiiv, our newsletter provider.
+          </p>
         </div>
       </section>
 
