@@ -98,13 +98,21 @@ export default function PrivacyPage() {
           </ul>
         </Block>
 
-        <Block title="Cookies">
+        <Block title="Cookies & consent">
           <p>
-            The site uses cookies set by Google Analytics and Contentsquare
-            (above). These are used to recognize repeat visits and aggregate
-            interaction data &mdash; not to build advertising profiles. You
-            can block cookies in your browser settings without breaking the
-            site. We don&apos;t use third-party advertising trackers.
+            On your first visit you&apos;ll see a small banner asking whether
+            to load Google Analytics and Contentsquare. If you click{" "}
+            <strong>Accept</strong>, the scripts load and set their cookies.
+            If you click <strong>Decline</strong>, they never load and no
+            tracking cookies are set. You can change your mind any time via
+            the &ldquo;Cookie settings&rdquo; link in the footer.
+          </p>
+          <p>
+            These tools recognize repeat visits and aggregate interaction
+            data &mdash; not advertising profiles. We don&apos;t use
+            third-party ad trackers. Functional cookies (e.g. remembering
+            your consent choice) are always on, since the site needs them to
+            work.
           </p>
         </Block>
 

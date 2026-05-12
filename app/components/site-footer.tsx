@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsLink } from "./cookie-settings-link";
 
 export function SiteFooter() {
   return (
@@ -24,6 +25,8 @@ export function SiteFooter() {
             >
               Terms &amp; takedown
             </Link>
+            <span aria-hidden="true">·</span>
+            <CookieSettingsLink className="cursor-pointer transition hover:text-white" />
           </p>
         </div>
 
