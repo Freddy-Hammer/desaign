@@ -11,14 +11,17 @@ import { getSupabase } from "../lib/supabase-client";
 const LOOKBACK_DAYS = 30;
 // Jobs are time-sensitive — only surface those discovered in the last week.
 const JOBS_LOOKBACK_DAYS = 7;
+// Stats window for "Top skills & tools this month" — rolling recent demand.
+const STATS_LOOKBACK_DAYS = 30;
 
 async function main() {
   const sb = getSupabase();
 
   const postsCutoff = new Date(Date.now() - LOOKBACK_DAYS * 86400 * 1000).toISOString();
   const jobsCutoff = new Date(Date.now() - JOBS_LOOKBACK_DAYS * 86400 * 1000).toISOString();
+  const statsCutoff = new Date(Date.now() - STATS_LOOKBACK_DAYS * 86400 * 1000).toISOString();
 
-  const [postsRes, jobsRes] = await Promise.all([
+  const [postsRes, jobsRes, statsRes] = await Promise.all([
     sb
       .from("posts")
       .select("id,title,link,source,category,thumbnail_url,created_at,newsletter_status")
@@ -32,6 +35,11 @@ async function main() {
       .gte("first_seen_at", jobsCutoff)
       .or("newsletter_status.is.null,newsletter_status.eq.queued")
       .order("posted_date", { ascending: false, nullsFirst: false }),
+    sb
+      .from("jobs")
+      .select("skills,tools,posted_date,first_seen_at")
+      .eq("active", true)
+      .or(`posted_date.gte.${statsCutoff},first_seen_at.gte.${statsCutoff}`),
   ]);
 
   const { data: posts, error } = postsRes;
@@ -67,7 +75,11 @@ async function main() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  const html = buildHtml(posts ?? [], jobs ?? [], supabaseUrl, serviceKey);
+  const statsRows = (statsRes.data ?? []) as Array<{ skills: string[] | null; tools: string[] | null }>;
+  const topSkills = topItems(statsRows.map((r) => r.skills));
+  const topTools = topItems(statsRows.map((r) => r.tools));
+
+  const html = buildHtml(posts ?? [], jobs ?? [], topSkills, topTools, statsRows.length, supabaseUrl, serviceKey);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -77,7 +89,27 @@ async function main() {
   console.log(`Newsletter builder: ${outPath}`);
   console.log(`Eligible posts (last ${LOOKBACK_DAYS}d, unsent): ${posts?.length ?? 0}`);
   console.log(`Eligible jobs  (last ${JOBS_LOOKBACK_DAYS}d, unsent): ${jobs?.length ?? 0}`);
+  console.log(`Top-3 skills (last ${STATS_LOOKBACK_DAYS}d, ${statsRows.length} jobs): ${topSkills.map((s) => `${s.name} (${s.count})`).join(", ") || "—"}`);
+  console.log(`Top-3 tools  (last ${STATS_LOOKBACK_DAYS}d, ${statsRows.length} jobs): ${topTools.map((s) => `${s.name} (${s.count})`).join(", ") || "—"}`);
   console.log(`Open in your browser to pick items, copy HTML, paste into Beehiiv.`);
+}
+
+function topItems(rows: Array<string[] | null | undefined>): Array<{ name: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    if (!Array.isArray(row)) continue;
+    const seen = new Set<string>();
+    for (const raw of row) {
+      const name = typeof raw === "string" ? raw.trim() : "";
+      if (!name || seen.has(name)) continue;
+      seen.add(name);
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+  }
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 3)
+    .map(([name, count]) => ({ name, count }));
 }
 
 function esc(s: unknown): string {
@@ -95,7 +127,15 @@ function safeJson(v: unknown): string {
     .replace(/&/g, "\\u0026");
 }
 
-function buildHtml(posts: any[], jobs: any[], supabaseUrl: string, serviceKey: string): string {
+function buildHtml(
+  posts: any[],
+  jobs: any[],
+  topSkills: Array<{ name: string; count: number }>,
+  topTools: Array<{ name: string; count: number }>,
+  statsJobCount: number,
+  supabaseUrl: string,
+  serviceKey: string,
+): string {
   const generatedAt = new Date().toLocaleString();
   const postsMap = Object.fromEntries(posts.map((p) => [p.id, p]));
   const jobsMap = Object.fromEntries(jobs.map((j) => [j.id, j]));
@@ -257,6 +297,10 @@ const SUPABASE_URL = ${safeJson(supabaseUrl)};
 const SUPABASE_KEY = ${safeJson(serviceKey)};
 const POSTS_MAP = ${safeJson(postsMap)};
 const JOBS_MAP = ${safeJson(jobsMap)};
+const TOP_SKILLS = ${safeJson(topSkills)};
+const TOP_TOOLS = ${safeJson(topTools)};
+const STATS_JOB_COUNT = ${safeJson(statsJobCount)};
+const STATS_LOOKBACK_DAYS = ${safeJson(30)};
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const selected = new Set();        // post ids (body items only — cover is excluded)
@@ -584,8 +628,13 @@ function buildBeehiivHtml() {
   });
 
   var labels = { Videos: 'Videos', Articles: 'Reads & studio notes', Images: 'Images' };
+  var fontStack = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif';
+  var h2Style = 'font-family:' + fontStack + ';font-size:13px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:#475240;margin:0 0 16px 0;';
   var out = [];
   out.push('<!-- Generated by DesAIgn newsletter builder -->');
+  // Brand-tinted cream wrapper — matches the site's #f7f4ef page background so
+  // cards float on the same warm tone they do on desaign-radar.vercel.app.
+  out.push('<div style="background:#f7f4ef;padding:28px 22px;border-radius:18px;">');
 
   // Optional cover image at the very top.
   if (bannerImg) {
@@ -662,11 +711,10 @@ function buildBeehiivHtml() {
     var arr = groups[t];
     if (!arr || !arr.length) return;
     out.push('');
-    out.push('<h2>' + labels[t] + '</h2>');
+    out.push('<h2 style="' + h2Style + '">' + labels[t] + '</h2>');
     out.push('');
     arr.forEach(function(p) { out.push(postCardHtml(p, includeThumbs)); });
-    out.push('<p style="margin-bottom:36px;">&nbsp;</p>');
-    out.push('<hr />');
+    out.push('<p style="margin-bottom:28px;">&nbsp;</p>');
   });
 
   // Jobs section — site-styled cards with inline CSS for email clients.
@@ -729,15 +777,54 @@ function buildBeehiivHtml() {
 
   if (jobsArr.length > 0) {
     out.push('');
-    out.push('<h2>💼 Open roles</h2>');
+    out.push('<h2 style="' + h2Style + '">💼 Open roles</h2>');
     out.push('');
     jobsArr.forEach(function(j) { out.push(jobCardHtml(j)); });
-    out.push('<p style="margin-bottom:36px;">&nbsp;</p>');
-    out.push('<hr />');
+    out.push('<p style="margin-bottom:28px;">&nbsp;</p>');
   }
 
-  // Drop trailing <hr/>
-  if (out[out.length - 1] === '<hr />') out.pop();
+  // "Top skills & tools" — common stats from the last STATS_LOOKBACK_DAYS of
+  // active jobs. Sits after the jobs section as a single combined card.
+  if ((TOP_SKILLS && TOP_SKILLS.length) || (TOP_TOOLS && TOP_TOOLS.length)) {
+    var statsTitleStyle = 'font-family:' + fontStack + ';font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#475240;margin:0 0 14px 0;';
+    var statsRowLabel = 'font-family:' + fontStack + ';font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#71717a;margin:0 0 10px 0;';
+    var statsItemName = 'font-family:' + fontStack + ';font-size:15px;font-weight:800;color:#18181b;letter-spacing:-0.005em;';
+    var statsItemCount = 'font-family:' + fontStack + ';font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#475240;';
+    var statsFooter = 'font-family:' + fontStack + ';font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#a1a1aa;margin:16px 0 0 0;';
+
+    function statsListHtml(label, items) {
+      if (!items || !items.length) return '';
+      var rows = '';
+      items.forEach(function(it, idx) {
+        var divider = idx === 0 ? '' : 'border-top:1px solid #ecebe3;';
+        rows += '<tr><td style="padding:10px 0;' + divider + '">'
+              +   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+              +     '<td style="' + statsItemName + '">' + escHtml(it.name) + '</td>'
+              +     '<td align="right" style="' + statsItemCount + 'white-space:nowrap;">' + it.count + ' ' + (it.count === 1 ? 'JOB' : 'JOBS') + '</td>'
+              +   '</tr></table>'
+              + '</td></tr>';
+      });
+      return '<div style="margin-bottom:18px;">'
+           +   '<p style="' + statsRowLabel + '">' + label + '</p>'
+           +   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">' + rows + '</table>'
+           + '</div>';
+    }
+
+    out.push('');
+    out.push('<h2 style="' + h2Style + '">📊 What hiring designers need right now</h2>');
+    out.push('');
+    out.push('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px 0;border-collapse:separate;">');
+    out.push(  '<tr><td style="background:#ffffff;border:1px solid #e4e4e7;border-radius:14px;padding:22px 24px;">');
+    out.push(    '<p style="' + statsTitleStyle + '">Top picks · last ' + STATS_LOOKBACK_DAYS + ' days</p>');
+    out.push(    statsListHtml('Top 3 skills', TOP_SKILLS));
+    out.push(    statsListHtml('Top 3 tools', TOP_TOOLS));
+    out.push(    '<p style="' + statsFooter + '">Across ' + STATS_JOB_COUNT + ' active job posts on DesAIgn Radar</p>');
+    out.push(  '</td></tr>');
+    out.push('</table>');
+    out.push('<p style="margin-bottom:28px;">&nbsp;</p>');
+  }
+
+  out.push('</div>'); // close brand-cream wrapper
   return out.join('\\n');
 }
 
