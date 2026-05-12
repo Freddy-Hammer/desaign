@@ -9,30 +9,60 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number }> {
-  if (jobs.length === 0) return { upserted: 0 };
+export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number; reopened: number }> {
+  if (jobs.length === 0) return { upserted: 0, reopened: 0 };
   const sb = getSupabase();
   const now = new Date().toISOString();
 
+  // Reopening detection: any job whose previous row had active=false is
+  // treated as a fresh posting — bump first_seen_at, clear telegram_sent_at
+  // and newsletter_status so the Telegram + newsletter pipelines pick it up
+  // again. Brand-new rows (no prior id) get DB defaults; continuing-active
+  // rows are left alone.
+  const ids = jobs.map((j) => j.id);
+  const reopenedIds = new Set<string>();
+  for (const batchIds of chunk(ids, BATCH)) {
+    const { data, error } = await sb
+      .from("jobs")
+      .select("id,active")
+      .in("id", batchIds);
+    if (error) throw new Error(`load prior state failed: ${error.message}`);
+    for (const r of data ?? []) {
+      if (r.active === false) reopenedIds.add(r.id as string);
+    }
+  }
+
   // The `first_seen_at` column defaults to now() on insert and is preserved
-  // on conflict because we don't include it in the upsert payload.
-  const rows = jobs.map((j) => ({
-    id: j.id,
-    company: j.company,
-    title: j.title,
-    location: j.location,
-    url: j.url,
-    posted_date: j.posted_date,
-    department: j.department,
-    platform: j.platform,
-    category: j.category,
-    active: true,
-    last_seen_at: now,
-    source: "scraper",
-    // Only overwrite description when scraper produced one. Sending null
-    // would clobber a value captured on a previous run for the same id.
-    ...(j.description ? { description: j.description, skills_extracted_at: null } : {}),
-  }));
+  // on conflict because we don't include it in the upsert payload — except
+  // for reopened rows, where we explicitly bump it.
+  const rows = jobs.map((j) => {
+    const base = {
+      id: j.id,
+      company: j.company,
+      title: j.title,
+      location: j.location,
+      url: j.url,
+      posted_date: j.posted_date,
+      department: j.department,
+      platform: j.platform,
+      category: j.category,
+      active: true,
+      last_seen_at: now,
+      source: "scraper",
+      // Only overwrite description when scraper produced one. Sending null
+      // would clobber a value captured on a previous run for the same id.
+      ...(j.description ? { description: j.description, skills_extracted_at: null } : {}),
+    };
+    if (reopenedIds.has(j.id)) {
+      return {
+        ...base,
+        first_seen_at: now,
+        telegram_sent_at: null,
+        newsletter_status: null,
+      };
+    }
+    return base;
+  });
 
   let upserted = 0;
   for (const batch of chunk(rows, BATCH)) {
@@ -40,7 +70,7 @@ export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number }> {
     if (error) throw new Error(`upsert jobs failed: ${error.message}`);
     upserted += batch.length;
   }
-  return { upserted };
+  return { upserted, reopened: reopenedIds.size };
 }
 
 /**

@@ -107,8 +107,8 @@ async function main() {
   // db.upsertJobs writes everything as 'scraper' by default — split it.
   const manualIds = new Set(manual.map((m) => m.id));
   const scraped = all.filter((j) => !manualIds.has(j.id));
-  const { upserted: scrapedUp } = await upsertJobs(scraped);
-  console.log(`  scraper rows upserted: ${scrapedUp}`);
+  const { upserted: scrapedUp, reopened: scrapedReopened } = await upsertJobs(scraped);
+  console.log(`  scraper rows upserted: ${scrapedUp}${scrapedReopened > 0 ? ` (${scrapedReopened} reopened — treated as fresh)` : ""}`);
 
   if (manual.length > 0) {
     // Manual rows take a slightly different upsert because they need source='manual'.
