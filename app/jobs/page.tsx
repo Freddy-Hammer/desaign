@@ -63,7 +63,16 @@ export default async function JobsPage() {
         <p className="rounded-lg border border-zinc-200 bg-white/60 p-5 text-xs leading-6 text-zinc-500">
           Designer-focused listings aggregated from public career pages. We
           link to original postings — apply directly with the company. To
-          remove a listing, contact us.
+          remove a listing,{" "}
+          <a
+            href="https://tally.so/r/Y5pvG5"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-brand-deep underline decoration-brand-deep/30 underline-offset-2 transition hover:decoration-brand-deep"
+          >
+            contact us
+          </a>
+          .
         </p>
       </section>
 

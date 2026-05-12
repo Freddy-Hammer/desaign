@@ -43,6 +43,14 @@ export function SiteFooter() {
           >
             X
           </a>
+          <a
+            href="https://tally.so/r/Y5pvG5"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white/40 hover:bg-white hover:text-zinc-950"
+          >
+            Contact
+          </a>
         </div>
       </div>
     </footer>
