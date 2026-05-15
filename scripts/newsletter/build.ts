@@ -414,7 +414,7 @@ function classifyType(p) {
   var src = (p.source || '').toLowerCase();
   var cat = (p.category || '').toLowerCase();
   if (src.indexOf('youtube') !== -1) return 'Videos';
-  if (src.indexOf('instagram') !== -1 || cat.indexOf('ai culture') !== -1 || cat.indexOf('ai images') !== -1) return 'Images';
+  if (src.indexOf('instagram') !== -1 || cat.indexOf('ai culture') !== -1 || cat.indexOf('ai images') !== -1 || cat.indexOf('thought') !== -1) return 'Images';
   return 'Articles';
 }
 
