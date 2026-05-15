@@ -39,6 +39,7 @@ const DEFAULT_STUDIOS: { name: string; url: string }[] = [
 const DEFAULT_MAX_ITEMS_PER_STUDIO = 1;
 
 const INSERT_MODE = process.argv.includes("--insert");
+const AUTO_PUBLISH = process.argv.includes("--auto-publish");
 
 function readNumberArg(flag: string, fallback: number): number {
   const arg = process.argv.find((a) => a.startsWith(`${flag}=`));
@@ -128,6 +129,14 @@ async function main() {
   if (newItems.length === 0) {
     console.log("Nothing new to insert.");
     return;
+  }
+
+  // --auto-publish marks rows so scripts/auto-publish.ts promotes them
+  // straight to posts + Telegram (used by the daily collect workflow).
+  if (AUTO_PUBLISH) {
+    for (const item of newItems) {
+      item.metadata = { ...item.metadata, auto_publish: true };
+    }
   }
 
   const { error } = await getSupabase().from("raw_items").insert(newItems);
