@@ -5,6 +5,7 @@ import * as fs from "fs";
 dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
 import { getSupabase } from "../lib/supabase-client";
+import { storeImageBuffer } from "../lib/store-image";
 
 // Posts older than this drop out of the picker. Beehiiv newsletters are
 // weekly; 30 days gives enough headroom for skipped weeks.
@@ -79,7 +80,21 @@ async function main() {
   const topSkills = topItems(statsRows.map((r) => r.skills));
   const topTools = topItems(statsRows.map((r) => r.tools));
 
-  const html = buildHtml(posts ?? [], jobs ?? [], topSkills, topTools, statsRows.length, supabaseUrl, serviceKey);
+  // Next issue number — the recap count continues from #3 (issues 1-2 predate
+  // this system, so an empty issues table means the next one is #3).
+  const { data: lastIssue } = await sb
+    .from("issues")
+    .select("number")
+    .order("number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextNumber = ((lastIssue?.number as number | undefined) ?? 2) + 1;
+
+  // Auto cover: a file named issue_<N>.(png|jpg|webp) in incoming-images is
+  // uploaded and pre-filled as the cover for issue #N.
+  const coverUrl = await findCoverImage(nextNumber);
+
+  const html = buildHtml(posts ?? [], jobs ?? [], topSkills, topTools, statsRows.length, supabaseUrl, serviceKey, nextNumber, coverUrl);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -91,7 +106,36 @@ async function main() {
   console.log(`Eligible jobs  (last ${JOBS_LOOKBACK_DAYS}d, unsent): ${jobs?.length ?? 0}`);
   console.log(`Top-3 skills (last ${STATS_LOOKBACK_DAYS}d, ${statsRows.length} jobs): ${topSkills.map((s) => `${s.name} (${s.count})`).join(", ") || "—"}`);
   console.log(`Top-3 tools  (last ${STATS_LOOKBACK_DAYS}d, ${statsRows.length} jobs): ${topTools.map((s) => `${s.name} (${s.count})`).join(", ") || "—"}`);
+  console.log(
+    `Next issue: DesAIgn Radar #${nextNumber}` +
+      (coverUrl
+        ? " — cover pre-filled from issue_" + nextNumber
+        : ` — drop incoming-images/issue_${nextNumber}.png for an auto cover`),
+  );
   console.log(`Open in your browser to pick items, copy HTML, paste into Beehiiv.`);
+}
+
+// Looks for a cover file named issue_<N>.(png|jpg|jpeg|webp) in incoming-images
+// (or its _uploaded subfolder) and re-hosts it to Supabase Storage.
+async function findCoverImage(issueNumber: number): Promise<string> {
+  const dirs = [
+    path.resolve(__dirname, "../../incoming-images"),
+    path.resolve(__dirname, "../../incoming-images/_uploaded"),
+  ];
+  for (const dir of dirs) {
+    for (const ext of ["png", "jpg", "jpeg", "webp"]) {
+      const file = path.join(dir, `issue_${issueNumber}.${ext}`);
+      if (fs.existsSync(file)) {
+        try {
+          return await storeImageBuffer(fs.readFileSync(file), "covers");
+        } catch (err) {
+          console.error(`Cover upload failed: ${(err as Error).message}`);
+          return "";
+        }
+      }
+    }
+  }
+  return "";
 }
 
 function topItems(rows: Array<string[] | null | undefined>): Array<{ name: string; count: number }> {
@@ -135,6 +179,8 @@ function buildHtml(
   statsJobCount: number,
   supabaseUrl: string,
   serviceKey: string,
+  nextNumber: number,
+  coverUrl: string,
 ): string {
   const generatedAt = new Date().toLocaleString();
   const postsMap = Object.fromEntries(posts.map((p) => [p.id, p]));
@@ -261,13 +307,13 @@ function buildHtml(
   <div class="banner-card" style="border-left-color:#16a34a;">
     <h3>✍ Issue details — for the /recap page</h3>
     <p class="banner-help">Saved as a public recap page at <strong>/recap</strong> when you publish. The intro is also prepended to the generated newsletter HTML, so you write it once.</p>
-    <input type="text" id="issue-title" class="banner-input" placeholder="Issue title — e.g. The week AI got opinionated about type" />
+    <input type="text" id="issue-title" class="banner-input" value="DesAIgn Radar #${nextNumber}" placeholder="Issue title" />
     <textarea id="issue-intro" class="banner-input" style="min-height:96px;resize:vertical;line-height:1.55;" placeholder="Intro — a few sentences setting up the issue. Leave a blank line between paragraphs."></textarea>
   </div>
   <div class="banner-card">
     <h3>★ Cover image (optional)</h3>
     <p class="banner-help">Paste an image URL to show at the very top of the newsletter, above all posts. For your own covers, drop the file in incoming-images/ and run scripts/storage/upload-folder.ts to get a permanent URL.</p>
-    <input type="text" id="banner-img" class="banner-input" placeholder="Image URL — e.g. a Supabase Storage URL from the uploader" />
+    <input type="text" id="banner-img" class="banner-input" value="${esc(coverUrl)}" placeholder="Image URL — e.g. a Supabase Storage URL from the uploader" />
     <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — leave blank for your own covers" />
   </div>
   <div id="post-list">
@@ -308,6 +354,7 @@ const TOP_SKILLS = ${safeJson(topSkills)};
 const TOP_TOOLS = ${safeJson(topTools)};
 const STATS_JOB_COUNT = ${safeJson(statsJobCount)};
 const STATS_LOOKBACK_DAYS = ${safeJson(30)};
+const NEXT_ISSUE_NUMBER = ${safeJson(nextNumber)};
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const selected = new Set();        // post ids (body items only — cover is excluded)
@@ -900,7 +947,7 @@ async function createIssue(title, intro) {
   for (var attempt = 0; attempt < 12; attempt++) {
     var slug = attempt === 0 ? base : base + '-' + (attempt + 1);
     var res = await sb.from('issues')
-      .insert({ slug: slug, title: title, intro: intro || null })
+      .insert({ slug: slug, title: title, intro: intro || null, number: NEXT_ISSUE_NUMBER })
       .select('id')
       .single();
     if (!res.error) return res.data.id;
