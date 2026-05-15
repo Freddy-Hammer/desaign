@@ -93,8 +93,9 @@ async function main() {
   // Auto cover: a file named issue_<N>.(png|jpg|webp) in incoming-images is
   // uploaded and pre-filled as the cover for issue #N.
   const coverUrl = await findCoverImage(nextNumber);
+  const coverOptions = await listCoverOptions();
 
-  const html = buildHtml(posts ?? [], jobs ?? [], topSkills, topTools, statsRows.length, supabaseUrl, serviceKey, nextNumber, coverUrl);
+  const html = buildHtml(posts ?? [], jobs ?? [], topSkills, topTools, statsRows.length, supabaseUrl, serviceKey, nextNumber, coverUrl, coverOptions);
 
   const outDir = path.resolve(__dirname, "../../reports");
   fs.mkdirSync(outDir, { recursive: true });
@@ -136,6 +137,34 @@ async function findCoverImage(issueNumber: number): Promise<string> {
     }
   }
   return "";
+}
+
+// Lists images already in the media bucket (covers/ and memes/), newest first,
+// for the picker's cover dropdown.
+async function listCoverOptions(): Promise<Array<{ url: string; label: string }>> {
+  const sb = getSupabase();
+  const found: Array<{ url: string; label: string; ts: number }> = [];
+  for (const folder of ["covers", "memes"]) {
+    const { data } = await sb.storage
+      .from("media")
+      .list(folder, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+    for (const obj of data ?? []) {
+      if (!obj.name || !/\.(png|jpe?g|webp|gif)$/i.test(obj.name)) continue;
+      const url = sb.storage
+        .from("media")
+        .getPublicUrl(`${folder}/${obj.name}`).data.publicUrl;
+      const when = obj.created_at
+        ? new Date(obj.created_at).toLocaleString()
+        : obj.name;
+      found.push({
+        url,
+        label: `${when}  ·  ${folder}`,
+        ts: obj.created_at ? Date.parse(obj.created_at) : 0,
+      });
+    }
+  }
+  found.sort((a, b) => b.ts - a.ts);
+  return found.map(({ url, label }) => ({ url, label }));
 }
 
 function topItems(rows: Array<string[] | null | undefined>): Array<{ name: string; count: number }> {
@@ -181,10 +210,14 @@ function buildHtml(
   serviceKey: string,
   nextNumber: number,
   coverUrl: string,
+  coverOptions: Array<{ url: string; label: string }>,
 ): string {
   const generatedAt = new Date().toLocaleString();
   const postsMap = Object.fromEntries(posts.map((p) => [p.id, p]));
   const jobsMap = Object.fromEntries(jobs.map((j) => [j.id, j]));
+  const coverOptionsHtml = coverOptions
+    .map((o) => `<option value="${esc(o.url)}">${esc(o.label)}</option>`)
+    .join("");
 
   return `<!DOCTYPE html>
 <!-- LOCAL USE ONLY — contains Supabase service role key. Do not share or deploy. -->
@@ -308,13 +341,24 @@ function buildHtml(
     <h3>✍ Issue details — for the /recap page</h3>
     <p class="banner-help">Saved as a public recap page at <strong>/recap</strong> when you publish. The intro is also prepended to the generated newsletter HTML, so you write it once.</p>
     <input type="text" id="issue-title" class="banner-input" value="DesAIgn Radar #${nextNumber}" placeholder="Issue title" />
-    <textarea id="issue-intro" class="banner-input" style="min-height:96px;resize:vertical;line-height:1.55;" placeholder="Intro — a few sentences setting up the issue. Leave a blank line between paragraphs."></textarea>
+    <textarea id="issue-intro" class="banner-input" oninput="introTouched = true;" style="min-height:96px;resize:vertical;line-height:1.55;" placeholder="Auto-fills from your picked titles — 2 videos + 1 studio piece. Edit to override; your text then sticks."></textarea>
   </div>
   <div class="banner-card">
     <h3>★ Cover image (optional)</h3>
-    <p class="banner-help">Paste an image URL to show at the very top of the newsletter, above all posts. For your own covers, drop the file in incoming-images/ and run scripts/storage/upload-folder.ts to get a permanent URL.</p>
-    <input type="text" id="banner-img" class="banner-input" value="${esc(coverUrl)}" placeholder="Image URL — e.g. a Supabase Storage URL from the uploader" />
-    <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — leave blank for your own covers" />
+    <p class="banner-help">Shows at the very top of the newsletter. Drop a file named <strong>issue_${nextNumber}.png</strong> in incoming-images/ for an auto cover, or pick any uploaded image below.</p>
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <input type="text" id="banner-img" class="banner-input" value="${esc(coverUrl)}" placeholder="Image URL" oninput="refreshCoverPreview()" />
+        <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — leave blank for your own covers" />
+        <select id="cover-picker" class="banner-input" onchange="pickCover(this.value)" style="cursor:pointer;">
+          <option value="">— or pick an uploaded image (newest first) —</option>
+          ${coverOptionsHtml}
+        </select>
+      </div>
+      <div id="cover-preview-box" style="width:150px;height:150px;flex-shrink:0;border:1.5px solid #e4e4e4;border-radius:8px;overflow:hidden;background:#fafafa;display:none;">
+        <img id="cover-preview" alt="cover preview" style="width:100%;height:100%;object-fit:contain;display:block;" onerror="this.parentElement.style.display='none';" />
+      </div>
+    </div>
   </div>
   <div id="post-list">
     ${posts.length === 0
@@ -360,6 +404,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const selected = new Set();        // post ids (body items only — cover is excluded)
 const selectedJobs = new Set();    // job ids — kept separate so markSent hits the right table
 var coverPostId = null;            // id of the Instagram post currently used as cover
+var introTouched = false;          // true once the intro is hand-edited
 
 function isInstagramPost(p) {
   return (p.source || '').toLowerCase().indexOf('instagram') !== -1;
@@ -371,6 +416,66 @@ function classifyType(p) {
   if (src.indexOf('youtube') !== -1) return 'Videos';
   if (src.indexOf('instagram') !== -1 || cat.indexOf('ai culture') !== -1 || cat.indexOf('ai images') !== -1) return 'Images';
   return 'Articles';
+}
+
+// --- Auto-intro: builds the intro line from picked titles ----------------
+// Video titles are cut at the first ':' or ','. The studio Article keeps its
+// full title (typically "Studio: Project"). 2 videos + 1 Article, plain list.
+function cleanVideoTitle(t) {
+  var s = String(t || '');
+  var cut = s.length;
+  var ci = s.indexOf(':'); if (ci !== -1) cut = Math.min(cut, ci);
+  var cm = s.indexOf(','); if (cm !== -1) cut = Math.min(cut, cm);
+  return s.slice(0, cut).trim();
+}
+
+function joinTitles(arr) {
+  if (arr.length === 0) return '';
+  if (arr.length === 1) return arr[0];
+  return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+}
+
+function updateAutoIntro() {
+  if (introTouched) return;
+  var videos = [], articles = [];
+  selected.forEach(function(id) {
+    var p = POSTS_MAP[id];
+    if (!p) return;
+    var t = classifyType(p);
+    if (t === 'Videos') videos.push(p);
+    else if (t === 'Articles') articles.push(p);
+  });
+  var parts = [];
+  videos.slice(0, 2).forEach(function(p) {
+    var c = cleanVideoTitle(p.title);
+    if (c) parts.push(c);
+  });
+  if (articles.length > 0) {
+    var st = String(articles[0].title || '').trim();
+    if (st) parts.push(st);
+  }
+  var line = joinTitles(parts);
+  document.getElementById('issue-intro').value = line ? line + '.' : '';
+}
+
+// --- Cover image preview + picker ----------------------------------------
+function refreshCoverPreview() {
+  var url = (document.getElementById('banner-img').value || '').trim();
+  var box = document.getElementById('cover-preview-box');
+  var img = document.getElementById('cover-preview');
+  if (url) {
+    img.src = url;
+    box.style.display = '';
+  } else {
+    img.removeAttribute('src');
+    box.style.display = 'none';
+  }
+}
+
+function pickCover(url) {
+  if (!url) return;
+  document.getElementById('banner-img').value = url;
+  refreshCoverPreview();
 }
 
 function postTimestampMs(p) {
@@ -622,6 +727,7 @@ function updateCounts() {
   document.getElementById('btn-mark-sent').disabled = total === 0;
   // Re-apply filters live so "show checked only" stays accurate as selection changes.
   if (document.getElementById('picks-only').checked) applyFilters();
+  updateAutoIntro();
 }
 
 function applyFilters() {
@@ -1010,6 +1116,7 @@ async function markSent() {
 
 renderList();
 updateCounts();
+refreshCoverPreview();
 <\/script>
 
 </body>
