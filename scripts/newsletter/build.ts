@@ -266,9 +266,9 @@ function buildHtml(
   </div>
   <div class="banner-card">
     <h3>★ Cover image (optional)</h3>
-    <p class="banner-help">Paste an Instagram image URL — it&apos;ll appear at the very top of the newsletter, above all posts. Checking an Instagram post below auto-fills this and removes it from the body.</p>
-    <input type="text" id="banner-img" class="banner-input" placeholder="Image URL — e.g. https://...cdninstagram.com/.../image.jpg" />
-    <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — e.g. https://www.instagram.com/p/..." />
+    <p class="banner-help">Paste an image URL to show at the very top of the newsletter, above all posts. For your own covers, drop the file in incoming-images/ and run scripts/storage/upload-folder.ts to get a permanent URL.</p>
+    <input type="text" id="banner-img" class="banner-input" placeholder="Image URL — e.g. a Supabase Storage URL from the uploader" />
+    <input type="text" id="banner-link" class="banner-input" placeholder="Link URL (optional) — leave blank for your own covers" />
   </div>
   <div id="post-list">
     ${posts.length === 0
@@ -492,7 +492,6 @@ function renderList() {
     }
   });
 
-  autoSetInstagramCover();
   applyFilters();
 }
 
@@ -528,13 +527,6 @@ function clearCoverPost() {
   document.getElementById('banner-img').value = '';
   document.getElementById('banner-link').value = '';
   coverPostId = null;
-}
-
-function autoSetInstagramCover() {
-  // If any pre-selected (★ picked) post is an Instagram post, set it as cover.
-  var igId = null;
-  selected.forEach(function(id) { if (!igId && isInstagramPost(POSTS_MAP[id])) igId = id; });
-  if (igId) { setCoverPost(igId); showToast('Instagram image auto-set as cover ✓'); }
 }
 
 function onToggle(cb) {
