@@ -131,7 +131,14 @@ export async function fetchChannelVideos(
       channelTitle: item.snippet.channelTitle ?? channelTitle,
       publishedAt: item.snippet.publishedAt,
       duration: item.contentDetails?.duration ?? "",
-      thumbnailUrl: `https://img.youtube.com/vi/${vid}/maxresdefault.jpg`,
+      // Use the API-reported thumbnails so the URL always points to a size
+      // that actually exists. maxresdefault.jpg 404s for videos without it —
+      // high (hqdefault) always exists, as does the final fallback.
+      thumbnailUrl:
+        item.snippet?.thumbnails?.maxres?.url ??
+        item.snippet?.thumbnails?.standard?.url ??
+        item.snippet?.thumbnails?.high?.url ??
+        `https://img.youtube.com/vi/${vid}/hqdefault.jpg`,
       viewCount: parseInt(item.statistics?.viewCount ?? "0", 10),
     });
   }
