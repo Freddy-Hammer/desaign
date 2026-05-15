@@ -50,13 +50,31 @@ export default async function Home() {
   const posts = diversifyOrder((data ?? []) as Post[]);
   const featuredPost = posts[0] ?? null;
 
+  // Featured-card image block — reused whether or not the post links out.
+  const featuredImageInner = featuredPost && (
+    <>
+      <PostImage
+        imageUrl={featuredPost.thumbnail_url}
+        title={featuredPost.title}
+        className="h-full w-full transition duration-500 group-hover:scale-[1.02]"
+      />
+      <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-deep shadow-sm backdrop-blur">
+        <span className="h-1.5 w-1.5 rounded-full bg-brand"></span>
+        Featured signal
+      </span>
+    </>
+  );
+
   // List the curated feed as structured data so search engines and AI
-  // assistants can read what DesAIgn Radar currently surfaces, each item
-  // attributed to its original creator's URL.
+  // assistants can read what DesAIgn Radar currently surfaces. Own content
+  // with no external link is omitted from the list.
   const feedJsonLd = itemListJsonLd(
     "DesAIgn Radar — curated design + AI feed",
     SITE_URL,
-    posts.slice(0, 30).map((p) => ({ name: p.title, url: p.link })),
+    posts
+      .slice(0, 30)
+      .filter((p): p is Post & { link: string } => !!p.link)
+      .map((p) => ({ name: p.title, url: p.link })),
   );
 
   return (
@@ -83,23 +101,21 @@ export default async function Home() {
 
           {featuredPost && (
             <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_32px_110px_rgba(15,23,42,0.14)]">
-              <a
-                href={featuredPost.link}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={featuredPost.title}
-                className="relative block aspect-video w-full overflow-hidden bg-zinc-100"
-              >
-                <PostImage
-                  imageUrl={featuredPost.thumbnail_url}
-                  title={featuredPost.title}
-                  className="h-full w-full transition duration-500 group-hover:scale-[1.02]"
-                />
-                <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-deep shadow-sm backdrop-blur">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand"></span>
-                  Featured signal
-                </span>
-              </a>
+              {featuredPost.link ? (
+                <a
+                  href={featuredPost.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={featuredPost.title}
+                  className="relative block aspect-video w-full overflow-hidden bg-zinc-100"
+                >
+                  {featuredImageInner}
+                </a>
+              ) : (
+                <div className="relative block aspect-video w-full overflow-hidden bg-zinc-100">
+                  {featuredImageInner}
+                </div>
+              )}
               <div className="flex flex-1 flex-col gap-6 p-7 sm:p-9">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -111,27 +127,35 @@ export default async function Home() {
                     {featuredPost.category ?? "Design + AI"}
                   </span>
                 </div>
-                <a
-                  href={featuredPost.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-brand-dark sm:text-[2.4rem]"
-                >
-                  {featuredPost.title}
-                </a>
-                <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-600">
-                    {formatDate(featuredPost.created_at)}
-                  </span>
+                {featuredPost.link ? (
                   <a
                     href={featuredPost.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition hover:gap-2.5 hover:text-brand-dark"
+                    className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-brand-dark sm:text-[2.4rem]"
                   >
-                    Open
-                    <span aria-hidden="true">↗</span>
+                    {featuredPost.title}
                   </a>
+                ) : (
+                  <p className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 sm:text-[2.4rem]">
+                    {featuredPost.title}
+                  </p>
+                )}
+                <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-5">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-600">
+                    {formatDate(featuredPost.created_at)}
+                  </span>
+                  {featuredPost.link && (
+                    <a
+                      href={featuredPost.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-zinc-950 transition hover:gap-2.5 hover:text-brand-dark"
+                    >
+                      Open
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
                 </div>
               </div>
             </article>

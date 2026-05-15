@@ -9,7 +9,7 @@ export const revalidate = 3600;
 interface FeedRow {
   id: string;
   title: string;
-  link: string;
+  link: string | null;
   source: string | null;
   category: string | null;
   summary: string | null;
@@ -32,7 +32,10 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  const rows = (data ?? []) as FeedRow[];
+  // Own content with no external link can't be a valid RSS item — skip it.
+  const rows = ((data ?? []) as FeedRow[]).filter(
+    (r): r is FeedRow & { link: string } => !!r.link,
+  );
 
   const items = rows
     .map((row) => {
