@@ -837,6 +837,7 @@ function buildBeehiivHtml() {
     out.push(    statsListHtml('Top 3 skills', TOP_SKILLS));
     out.push(    statsListHtml('Top 3 tools', TOP_TOOLS));
     out.push(    '<p style="' + statsFooter + '">Across ' + STATS_JOB_COUNT + ' active job posts on DesAIgn Radar</p>');
+    out.push(    '<p style="font-family:' + fontStack + ';font-size:11px;font-weight:700;letter-spacing:0.2em;margin:14px 0 0 0;"><a href="https://desaign-radar.vercel.app/skills-and-tools" style="color:#475240;text-decoration:none;">SEE THE FULL LIST &#8599;</a></p>');
     out.push(  '</td></tr>');
     out.push('</table>');
     out.push('<p style="margin-bottom:28px;">&nbsp;</p>');
