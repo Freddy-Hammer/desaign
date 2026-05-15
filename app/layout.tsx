@@ -26,7 +26,12 @@ export const metadata: Metadata = {
   creator: SITE_NAME,
   publisher: SITE_NAME,
   category: "Design",
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": [{ url: "/feed.xml", title: `${SITE_NAME} — RSS` }],
+    },
+  },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
