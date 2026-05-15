@@ -29,6 +29,7 @@ export const SITE_KEYWORDS = [
 export const SITE_ROUTES = [
   { path: "/", changeFrequency: "daily" as const, priority: 1 },
   { path: "/jobs", changeFrequency: "daily" as const, priority: 0.9 },
+  { path: "/recap", changeFrequency: "weekly" as const, priority: 0.8 },
   { path: "/skills-and-tools", changeFrequency: "weekly" as const, priority: 0.8 },
   { path: "/subscribe", changeFrequency: "monthly" as const, priority: 0.7 },
   { path: "/privacy", changeFrequency: "yearly" as const, priority: 0.3 },

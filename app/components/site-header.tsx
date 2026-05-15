@@ -35,6 +35,12 @@ export function SiteHeader() {
         </Link>
         <div className="flex items-center gap-4">
           <Link
+            href="/recap"
+            className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep md:inline"
+          >
+            Recap
+          </Link>
+          <Link
             href="/jobs"
             className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep md:inline"
           >
@@ -87,6 +93,12 @@ export function SiteHeader() {
           className="border-t border-zinc-900/10 bg-[#f7f4ef] md:hidden"
         >
           <nav className="mx-auto flex max-w-7xl flex-col px-5 py-3 sm:px-8">
+            <Link
+              href="/recap"
+              className="py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep"
+            >
+              Recap
+            </Link>
             <Link
               href="/jobs"
               className="py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-700 transition hover:text-brand-deep"
