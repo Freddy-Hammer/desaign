@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { SiteHeader } from "../components/site-header";
 import { SiteFooter } from "../components/site-footer";
@@ -65,13 +64,6 @@ export default async function SkillsAndToolsPage() {
             Radar board. Filter by position and time period to see what each
             slice actually demands.
           </p>
-          <Link
-            href="/skills-and-tools/snapshot"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-brand-deep"
-          >
-            See the shareable monthly snapshot
-            <span aria-hidden="true">→</span>
-          </Link>
         </div>
       </section>
 
