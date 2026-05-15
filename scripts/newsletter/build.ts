@@ -451,8 +451,12 @@ function updateAutoIntro() {
     if (c) parts.push(c);
   });
   if (articles.length > 0) {
-    var st = String(articles[0].title || '').trim();
-    if (st) parts.push(st);
+    var a = articles[0];
+    var caseName = String(a.title || '').trim();
+    var studioName = String(a.source || '').trim();
+    if (caseName) {
+      parts.push(studioName ? studioName + ': ' + caseName : caseName);
+    }
   }
   var line = joinTitles(parts);
   document.getElementById('issue-intro').value = line ? line + '.' : '';
