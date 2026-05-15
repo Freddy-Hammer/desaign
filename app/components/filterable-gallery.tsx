@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import type { Post } from "../types/post";
 import { isImageFirstPost, SignalCard } from "./signal-card";
+import { InlineSubscribe } from "./inline-subscribe";
 
 type ContentType = "Videos" | "Images" | "Articles";
 
@@ -475,6 +476,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
                       <SignalCard key={post.id} post={post} />
                     ))}
                   </div>
+                  {idx === 0 && dayGroups.length > 1 && <InlineSubscribe />}
                 </div>
               ))}
 
