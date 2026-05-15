@@ -847,7 +847,7 @@ function buildBeehiivHtml() {
   if (introText) {
     var introTextStyle = 'font-family:' + fontStack + ';font-size:20px;line-height:1.5;font-weight:700;color:#ffffff;';
     var introParas = introText.split(/\\n\\s*\\n/).map(function(s) { return s.trim(); }).filter(Boolean);
-    out.push('<div style="background:#475240;border-radius:14px;padding:24px 28px;margin:0 0 28px 0;">');
+    out.push('<div style="background:#25252a;border-radius:14px;padding:24px 28px;margin:0 0 28px 0;">');
     introParas.forEach(function(para, i) {
       out.push('<p style="' + introTextStyle + 'margin:' + (i === 0 ? '0' : '14px 0 0 0') + ';">' + escHtml(para).replace(/\\n/g, '<br />') + '</p>');
     });
