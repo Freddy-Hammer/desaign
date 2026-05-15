@@ -38,6 +38,10 @@ npx tsx scripts/instagram/add.ts --image=<url> --link=<url> [--title=<text>] [--
 # Writes raw_items rows with content_type='showcase'. Same review → posts → Telegram path.
 npx tsx scripts/showcase/run.ts            # dry-run
 npx tsx scripts/showcase/run.ts --insert   # writes to raw_items
+
+# Image storage — re-host images so they never expire (Instagram CDN URLs do)
+npx tsx scripts/storage/create-bucket.ts   # one-time: create the public 'media' bucket
+npx tsx scripts/storage/upload-folder.ts   # upload files from incoming-images/ → permanent URLs
 ```
 
 ## Architecture

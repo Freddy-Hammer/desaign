@@ -43,6 +43,10 @@ next-env.d.ts
 # local review reports (contain service role key — never commit)
 /reports/
 
+# local meme image drop folder — files are uploaded to Supabase Storage
+/incoming-images/*
+!/incoming-images/README.md
+
 # playwright MCP scratch files and screenshots from interactive testing
 /.playwright-mcp/
 /*.png
