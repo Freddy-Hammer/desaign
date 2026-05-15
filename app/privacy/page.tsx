@@ -3,9 +3,10 @@ import { SiteHeader } from "../components/site-header";
 import { SiteFooter } from "../components/site-footer";
 
 export const metadata = {
-  title: "Privacy Policy — DesAIgn Radar",
+  title: "Privacy Policy",
   description:
     "How DesAIgn Radar handles your data — what we collect, where it goes, and how to remove it.",
+  alternates: { canonical: "/privacy" },
 };
 
 const LAST_UPDATED = "May 12, 2026";

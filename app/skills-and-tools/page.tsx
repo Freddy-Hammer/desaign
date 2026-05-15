@@ -1,9 +1,23 @@
 import { supabase } from "@/lib/supabase";
 import { SiteHeader } from "../components/site-header";
 import { SiteFooter } from "../components/site-footer";
+import { SITE_URL } from "@/lib/seo";
 import { SkillsToolsExplorer, type ExplorerJob } from "./explorer";
 
 export const revalidate = 21600; // 6 hours
+
+export const metadata = {
+  title: "Skills & tools designers are asked for",
+  description:
+    "A live chart of the skills and tools designers are being asked for, extracted from active job postings on the DesAIgn Radar board.",
+  alternates: { canonical: "/skills-and-tools" },
+  openGraph: {
+    title: "Skills & tools designers are asked for — DesAIgn Radar",
+    description:
+      "What designers are being asked for, extracted from active job postings.",
+    url: `${SITE_URL}/skills-and-tools`,
+  },
+};
 
 interface JobRow {
   id: string;

@@ -5,6 +5,8 @@ import { FilterableGallery } from "./components/filterable-gallery";
 import { JobsStrip } from "./components/jobs-strip";
 import { SiteHeader } from "./components/site-header";
 import { SiteFooter } from "./components/site-footer";
+import { JsonLd } from "./components/json-ld";
+import { SITE_URL, itemListJsonLd } from "@/lib/seo";
 
 export const revalidate = 0;
 
@@ -48,8 +50,18 @@ export default async function Home() {
   const posts = diversifyOrder((data ?? []) as Post[]);
   const featuredPost = posts[0] ?? null;
 
+  // List the curated feed as structured data so search engines and AI
+  // assistants can read what DesAIgn Radar currently surfaces, each item
+  // attributed to its original creator's URL.
+  const feedJsonLd = itemListJsonLd(
+    "DesAIgn Radar — curated design + AI feed",
+    SITE_URL,
+    posts.slice(0, 30).map((p) => ({ name: p.title, url: p.link })),
+  );
+
   return (
     <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
+      <JsonLd data={feedJsonLd} />
       <SiteHeader />
 
       <section className="border-b border-zinc-900/10">

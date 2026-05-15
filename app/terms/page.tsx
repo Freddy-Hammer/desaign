@@ -3,9 +3,10 @@ import { SiteHeader } from "../components/site-header";
 import { SiteFooter } from "../components/site-footer";
 
 export const metadata = {
-  title: "Terms & Takedown — DesAIgn Radar",
+  title: "Terms & Takedown",
   description:
     "How DesAIgn Radar curates content, links back to creators, and handles takedown requests.",
+  alternates: { canonical: "/terms" },
 };
 
 const LAST_UPDATED = "May 12, 2026";

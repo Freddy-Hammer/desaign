@@ -3,9 +3,24 @@ import { supabase } from "@/lib/supabase";
 import type { Job } from "../types/job";
 import { SiteHeader } from "../components/site-header";
 import { SiteFooter } from "../components/site-footer";
+import { JsonLd } from "../components/json-ld";
+import { SITE_URL, itemListJsonLd } from "@/lib/seo";
 import { JobBoard } from "./jobs-board";
 
 export const revalidate = 21600; // 6 hours
+
+export const metadata = {
+  title: "Designer jobs in AI",
+  description:
+    "A daily-refreshed board of designer roles from design studios, design-led product companies, and AI-native teams. Apply directly with the company.",
+  alternates: { canonical: "/jobs" },
+  openGraph: {
+    title: "Designer jobs in AI — DesAIgn Radar",
+    description:
+      "Open roles for designers exploring AI, aggregated daily from public career pages.",
+    url: `${SITE_URL}/jobs`,
+  },
+};
 
 export default async function JobsPage() {
   const { data, error } = await supabase
@@ -16,8 +31,15 @@ export default async function JobsPage() {
 
   const jobs = (data ?? []) as Job[];
 
+  const jobsJsonLd = itemListJsonLd(
+    "Designer jobs in AI — DesAIgn Radar",
+    `${SITE_URL}/jobs`,
+    jobs.map((j) => ({ name: `${j.title} — ${j.company}`, url: j.url })),
+  );
+
   return (
     <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
+      <JsonLd data={jobsJsonLd} />
       <SiteHeader />
 
       <section className="border-b border-zinc-900/10">

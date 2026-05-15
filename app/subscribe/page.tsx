@@ -9,9 +9,10 @@ import { SiteFooter } from "../components/site-footer";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Subscribe — DesAIgn Radar",
+  title: "Subscribe",
   description:
     "A short dispatch of curated design + AI work — videos, launches, essays, studio notes — direct in your inbox.",
+  alternates: { canonical: "/subscribe" },
 };
 
 const ISSUE_INGREDIENTS = [
