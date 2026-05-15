@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
   },
+  verification: {
+    google: "l7ucYOpEDDoHyXyIu0Or1JE8UVPiMQ3Hr9Ogb-_uBfE",
+  },
   robots: {
     index: true,
     follow: true,
