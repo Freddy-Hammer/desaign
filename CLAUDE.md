@@ -42,6 +42,12 @@ npx tsx scripts/showcase/run.ts --insert   # writes to raw_items
 # Image storage — re-host images so they never expire (Instagram CDN URLs do)
 npx tsx scripts/storage/create-bucket.ts   # one-time: create the public 'media' bucket
 npx tsx scripts/storage/upload-folder.ts   # upload files from incoming-images/ → permanent URLs
+
+# Weekly "Thought" post — picks the oldest unposted uploaded image,
+# publishes it to posts (linkless, category 'Thought') + Telegram.
+# Runs every Tuesday via .github/workflows/weekly-thought.yml.
+npx tsx scripts/thoughts/post-weekly.ts            # post one
+npx tsx scripts/thoughts/post-weekly.ts --dry-run  # show the pick, write nothing
 ```
 
 ## Architecture
