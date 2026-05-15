@@ -257,6 +257,12 @@ function buildHtml(
 </div>
 
 <div class="container">
+  <div class="banner-card" style="border-left-color:#16a34a;">
+    <h3>✍ Issue details — for the /recap page</h3>
+    <p class="banner-help">Saved as a public recap page at <strong>/recap</strong> when you publish. The intro is also prepended to the generated newsletter HTML, so you write it once.</p>
+    <input type="text" id="issue-title" class="banner-input" placeholder="Issue title — e.g. The week AI got opinionated about type" />
+    <textarea id="issue-intro" class="banner-input" style="min-height:96px;resize:vertical;line-height:1.55;" placeholder="Intro — a few sentences setting up the issue. Leave a blank line between paragraphs."></textarea>
+  </div>
   <div class="banner-card">
     <h3>★ Cover image (optional)</h3>
     <p class="banner-help">Paste an Instagram image URL — it&apos;ll appear at the very top of the newsletter, above all posts. Checking an Instagram post below auto-fills this and removes it from the body.</p>
@@ -273,14 +279,14 @@ function buildHtml(
 <div class="action-bar">
   <span class="summary"><strong id="ab-selected">0</strong> selected</span>
   <span class="spacer"></span>
-  <button class="btn-mark-sent" id="btn-mark-sent" onclick="markSent()" disabled>Mark selected as sent</button>
+  <button class="btn-mark-sent" id="btn-mark-sent" onclick="markSent()" disabled>Publish &amp; mark sent</button>
   <button class="btn-generate" id="btn-generate" onclick="showPreview()" disabled>Generate HTML →</button>
 </div>
 
 <div class="modal-overlay" id="preview-overlay">
   <div class="modal">
     <h2>Beehiiv-ready HTML</h2>
-    <p class="modal-sub">Paste this into a new Beehiiv post (Code view). Edit intro/outro in Beehiiv.</p>
+    <p class="modal-sub">Paste this into a new Beehiiv post (Code view). The intro is already included — add the outro in Beehiiv.</p>
     <textarea id="preview-output" readonly></textarea>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closePreview()">Close</button>
@@ -648,6 +654,18 @@ function buildBeehiivHtml() {
     out.push('<hr />');
   }
 
+  // Editorial intro — written in the picker, saved to the recap issue, and
+  // prepended here so it isn't re-typed in Beehiiv.
+  var introText = (document.getElementById('issue-intro').value || '').trim();
+  if (introText) {
+    var introStyle = 'font-family:' + fontStack + ';font-size:15px;line-height:1.7;color:#3f3f46;margin:0 0 16px 0;';
+    introText.split(/\\n\\s*\\n/).forEach(function(para) {
+      var t = para.trim();
+      if (t) out.push('<p style="' + introStyle + '">' + escHtml(t).replace(/\\n/g, '<br />') + '</p>');
+    });
+    out.push('<hr />');
+  }
+
   // Site-styled card for posts. Same palette + card chrome as the jobs cards
   // for visual consistency in the newsletter. Inline CSS, table-based layout
   // for email-client compatibility.
@@ -858,25 +876,55 @@ async function copyHtml() {
   }
 }
 
+function todaySlug() {
+  var d = new Date();
+  return d.getFullYear() + '-'
+    + String(d.getMonth() + 1).padStart(2, '0') + '-'
+    + String(d.getDate()).padStart(2, '0');
+}
+
+// Insert the recap issue, retrying with a -N suffix if today already has one.
+async function createIssue(title, intro) {
+  var base = todaySlug();
+  for (var attempt = 0; attempt < 12; attempt++) {
+    var slug = attempt === 0 ? base : base + '-' + (attempt + 1);
+    var res = await sb.from('issues')
+      .insert({ slug: slug, title: title, intro: intro || null })
+      .select('id')
+      .single();
+    if (!res.error) return res.data.id;
+    if (res.error.code !== '23505') throw new Error(res.error.message);
+  }
+  throw new Error('Could not allocate a unique slug for today.');
+}
+
 async function markSent() {
   var total = totalSelected();
   if (total === 0) return;
+  var title = (document.getElementById('issue-title').value || '').trim();
+  if (!title) {
+    showToast('Add an issue title before publishing', true);
+    document.getElementById('issue-title').focus();
+    return;
+  }
+  var intro = (document.getElementById('issue-intro').value || '').trim();
   var postIds = Array.from(selected);
   var jobIds = Array.from(selectedJobs);
-  if (!confirm('Mark ' + total + ' item(s) as sent in Beehiiv? They will disappear from the picker on next reload.')) return;
+  if (!confirm('Publish issue "' + title + '" and mark ' + total + ' item(s) as sent?\\n\\nThis creates a public recap page at /recap and removes the items from the picker on next reload.')) return;
 
   var btn = document.getElementById('btn-mark-sent');
   btn.disabled = true;
-  btn.textContent = 'Marking…';
+  btn.textContent = 'Publishing…';
   try {
+    var issueId = await createIssue(title, intro);
     var promises = [];
-    if (postIds.length > 0) promises.push(sb.from('posts').update({ newsletter_status: 'sent' }).in('id', postIds));
+    if (postIds.length > 0) promises.push(sb.from('posts').update({ newsletter_status: 'sent', issue_id: issueId }).in('id', postIds));
     if (jobIds.length > 0) promises.push(sb.from('jobs').update({ newsletter_status: 'sent' }).in('id', jobIds));
     var results = await Promise.all(promises);
     for (var i = 0; i < results.length; i++) {
       if (results[i].error) throw new Error(results[i].error.message);
     }
-    showToast('Marked ' + total + ' as sent ✓');
+    showToast('Published ✓ ' + total + ' sent · recap page live');
     // Remove from local state and DOM
     postIds.forEach(function(id) {
       delete POSTS_MAP[id];
@@ -890,13 +938,15 @@ async function markSent() {
     });
     selected.clear();
     selectedJobs.clear();
+    document.getElementById('issue-title').value = '';
+    document.getElementById('issue-intro').value = '';
     updateCounts();
     applyFilters();
   } catch (err) {
-    showToast('Update failed: ' + err.message, true);
+    showToast('Publish failed: ' + err.message, true);
   } finally {
     btn.disabled = totalSelected() === 0;
-    btn.textContent = 'Mark selected as sent';
+    btn.textContent = 'Publish & mark sent';
   }
 }
 
