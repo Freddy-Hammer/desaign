@@ -5,6 +5,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
 import { getSupabase } from "../lib/supabase-client";
 import { findExisting } from "../lib/dedup";
+import { storeImage } from "../lib/store-image";
 import type { RawItem } from "../lib/raw-item-schema";
 
 interface Args {
@@ -48,6 +49,22 @@ async function main() {
     return;
   }
 
+  // Instagram image URLs are signed and expire within hours/days. Re-host a
+  // permanent copy to Supabase Storage now, while the URL is still valid.
+  let thumbnailUrl = args.image;
+  try {
+    thumbnailUrl = await storeImage(args.image, "instagram");
+    console.log("Image re-hosted to Supabase Storage (permanent).");
+  } catch (err) {
+    console.error(
+      `Warning: could not re-host image (${(err as Error).message}).`,
+    );
+    console.error(
+      "Using the original URL — it will likely expire. Ensure the 'media' " +
+        "bucket exists: npx tsx scripts/storage/create-bucket.ts",
+    );
+  }
+
   const row: RawItem = {
     source: "Instagram",
     source_url: args.link,
@@ -57,7 +74,7 @@ async function main() {
     raw_description: null,
     raw_author: args.author || null,
     raw_published_at: null,
-    thumbnail_url: args.image,
+    thumbnail_url: thumbnailUrl,
     captured_text: null,
     tags: [],
     status: "new",
