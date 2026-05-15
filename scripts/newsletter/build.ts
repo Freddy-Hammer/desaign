@@ -832,25 +832,26 @@ function buildBeehiivHtml() {
   // Optional cover image at the very top.
   if (bannerImg) {
     out.push('');
-    var imgTag = '<img src="' + escAttr(bannerImg) + '" alt="" style="max-width:100%;border-radius:8px;" />';
+    var imgTag = '<img src="' + escAttr(bannerImg) + '" alt="" style="display:block;max-width:100%;border-radius:14px;" />';
     if (bannerLink) {
-      out.push('<p><a href="' + escAttr(bannerLink) + '">' + imgTag + '</a></p>');
+      out.push('<p style="margin:0 0 20px 0;"><a href="' + escAttr(bannerLink) + '">' + imgTag + '</a></p>');
     } else {
-      out.push('<p>' + imgTag + '</p>');
+      out.push('<p style="margin:0 0 20px 0;">' + imgTag + '</p>');
     }
-    out.push('<hr />');
   }
 
   // Editorial intro — written in the picker, saved to the recap issue, and
-  // prepended here so it isn't re-typed in Beehiiv.
+  // prepended here so it isn't re-typed in Beehiiv. Rendered as a brand-green
+  // card (no divider rules).
   var introText = (document.getElementById('issue-intro').value || '').trim();
   if (introText) {
-    var introStyle = 'font-family:' + fontStack + ';font-size:15px;line-height:1.7;color:#3f3f46;margin:0 0 16px 0;';
-    introText.split(/\\n\\s*\\n/).forEach(function(para) {
-      var t = para.trim();
-      if (t) out.push('<p style="' + introStyle + '">' + escHtml(t).replace(/\\n/g, '<br />') + '</p>');
+    var introTextStyle = 'font-family:' + fontStack + ';font-size:20px;line-height:1.5;font-weight:700;color:#ffffff;';
+    var introParas = introText.split(/\\n\\s*\\n/).map(function(s) { return s.trim(); }).filter(Boolean);
+    out.push('<div style="background:#475240;border-radius:14px;padding:24px 28px;margin:0 0 28px 0;">');
+    introParas.forEach(function(para, i) {
+      out.push('<p style="' + introTextStyle + 'margin:' + (i === 0 ? '0' : '14px 0 0 0') + ';">' + escHtml(para).replace(/\\n/g, '<br />') + '</p>');
     });
-    out.push('<hr />');
+    out.push('</div>');
   }
 
   // Site-styled card for posts. Same palette + card chrome as the jobs cards
