@@ -30,7 +30,7 @@ export function isImageFirstPost(post: Post) {
     source.includes("instagram") ||
     category.includes("ai culture") ||
     category.includes("ai images") ||
-    category.includes("meme")
+    category.includes("thought")
   );
 }
 
