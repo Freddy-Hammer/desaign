@@ -179,6 +179,7 @@ function buildHtml(
     .post-row { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 8px; transition: border-left 0.15s, opacity 0.2s; border-left: 4px solid transparent; }
     .post-row.checked { border-left-color: #16a34a; }
     .post-row.cover-active { border-left-color: #eab308; background: #fffbeb; }
+    .post-row.img-broken { border-left-color: #dc2626; background: #fef2f2; }
     .post-row.hidden { display: none; }
     .post-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
     .post-row .thumb { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; background: #f0f0f0; flex-shrink: 0; }
@@ -344,6 +345,23 @@ function showToast(msg, isErr) {
   el._t = setTimeout(function() { el.className = 'toast'; }, 3000);
 }
 
+// Flags a post whose thumbnail failed to load — typically an expired
+// Instagram CDN URL. Shown in the picker so it can be re-uploaded or skipped.
+function flagBrokenImage(img) {
+  var row = img.closest('.post-row');
+  if (!row) return;
+  row.classList.add('img-broken');
+  var meta = row.querySelector('.meta');
+  if (meta && !meta.querySelector('.broken-badge')) {
+    var b = document.createElement('span');
+    b.className = 'badge broken-badge';
+    b.style.background = '#fee2e2';
+    b.style.color = '#b91c1c';
+    b.textContent = '⚠ image expired — re-upload or skip';
+    meta.appendChild(b);
+  }
+}
+
 function renderPostRow(p) {
   var date = p.created_at
     ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -361,7 +379,7 @@ function renderPostRow(p) {
   return '<label class="' + rowClass + '" data-id="' + escAttr(p.id) + '" data-type="' + classifyType(p) + '" data-ts="' + postTimestampMs(p) + '" data-status="' + escAttr(p.newsletter_status || '') + '">'
     + '<input type="checkbox" data-id="' + escAttr(p.id) + '" ' + checkedAttr + ' onchange="onToggle(this)" />'
     + (p.thumbnail_url
-        ? '<img class="thumb" src="' + escAttr(p.thumbnail_url) + '" alt="" loading="lazy" />'
+        ? '<img class="thumb" src="' + escAttr(p.thumbnail_url) + '" alt="" loading="lazy" onerror="flagBrokenImage(this)" />'
         : '<div class="thumb"></div>')
     + '<div class="info">'
     +   '<div class="title"><a href="' + escAttr(p.link) + '" target="_blank" rel="noopener">' + escHtml(p.title) + '</a></div>'
