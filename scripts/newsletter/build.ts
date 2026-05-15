@@ -435,25 +435,30 @@ function joinTitles(arr) {
   return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
 }
 
+// A studio case is identified by its category ("Case Study"), not by being
+// the first Article — Articles also include essays, showcases, and items
+// pre-selected from review.
+function isCaseStudy(p) {
+  return ((p && p.category) || '').toLowerCase().indexOf('case study') !== -1;
+}
+
 function updateAutoIntro() {
   if (introTouched) return;
-  var videos = [], articles = [];
+  var videos = [], studioCase = null;
   selected.forEach(function(id) {
     var p = POSTS_MAP[id];
     if (!p) return;
-    var t = classifyType(p);
-    if (t === 'Videos') videos.push(p);
-    else if (t === 'Articles') articles.push(p);
+    if (classifyType(p) === 'Videos') videos.push(p);
+    else if (!studioCase && isCaseStudy(p)) studioCase = p;
   });
   var parts = [];
   videos.slice(0, 2).forEach(function(p) {
     var c = cleanVideoTitle(p.title);
     if (c) parts.push(c);
   });
-  if (articles.length > 0) {
-    var a = articles[0];
-    var caseName = String(a.title || '').trim();
-    var studioName = String(a.source || '').trim();
+  if (studioCase) {
+    var caseName = String(studioCase.title || '').trim();
+    var studioName = String(studioCase.source || '').trim();
     if (caseName) {
       parts.push(studioName ? studioName + ': ' + caseName : caseName);
     }
