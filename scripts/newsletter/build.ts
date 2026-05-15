@@ -319,6 +319,8 @@ function buildHtml(
     <select id="type-filter" onchange="applyFilters()">
       <option value="all" selected>All</option>
       <option value="Videos">Videos</option>
+      <option value="Case Studies">Case Studies</option>
+      <option value="Sites of the Day">Sites of the Day</option>
       <option value="Articles">Articles</option>
       <option value="Images">Images</option>
     </select>
@@ -415,8 +417,13 @@ function classifyType(p) {
   var cat = (p.category || '').toLowerCase();
   if (src.indexOf('youtube') !== -1) return 'Videos';
   if (src.indexOf('instagram') !== -1 || cat.indexOf('ai culture') !== -1 || cat.indexOf('ai images') !== -1 || cat.indexOf('thought') !== -1) return 'Images';
+  if (cat.indexOf('case study') !== -1) return 'Case Studies';
+  if (cat.indexOf('site of the day') !== -1) return 'Sites of the Day';
   return 'Articles';
 }
+
+// Display order for post groups in the picker and the generated newsletter.
+var POST_GROUPS = ['Videos', 'Case Studies', 'Sites of the Day', 'Articles', 'Images'];
 
 // --- Auto-intro: builds the intro line from picked titles ----------------
 // Video titles are cut at the first ':' or ','. The studio Article keeps its
@@ -588,14 +595,15 @@ function renderList() {
   if (Object.keys(POSTS_MAP).length === 0 && Object.keys(JOBS_MAP).length === 0) return;
 
   // Posts grouped by content type, newest first within each group.
-  var groups = { Videos: [], Articles: [], Images: [] };
+  var groups = {};
+  POST_GROUPS.forEach(function(g) { groups[g] = []; });
   Object.values(POSTS_MAP).forEach(function(p) {
     var t = classifyType(p);
     (groups[t] || (groups[t] = [])).push(p);
   });
 
   var html = '';
-  ['Videos', 'Articles', 'Images'].forEach(function(t) {
+  POST_GROUPS.forEach(function(t) {
     var arr = groups[t];
     if (!arr || !arr.length) return;
     arr.sort(function(a, b) { return postTimestampMs(b) - postTimestampMs(a); });
@@ -793,7 +801,8 @@ function buildBeehiivHtml() {
   var bannerImg = (document.getElementById('banner-img').value || '').trim();
   var bannerLink = (document.getElementById('banner-link').value || '').trim();
 
-  var groups = { Videos: [], Articles: [], Images: [] };
+  var groups = {};
+  POST_GROUPS.forEach(function(g) { groups[g] = []; });
   selected.forEach(function(id) {
     var p = POSTS_MAP[id];
     if (!p) return;
@@ -805,7 +814,13 @@ function buildBeehiivHtml() {
     groups[k].sort(function(a, b) { return postTimestampMs(b) - postTimestampMs(a); });
   });
 
-  var labels = { Videos: 'Videos', Articles: 'Reads & studio notes', Images: 'Images' };
+  var labels = {
+    'Videos': 'Videos',
+    'Case Studies': 'Studio case studies',
+    'Sites of the Day': 'Sites of the day',
+    'Articles': 'Reads & essays',
+    'Images': 'Images',
+  };
   var fontStack = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif';
   var h2Style = 'font-family:' + fontStack + ';font-size:13px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:#475240;margin:0 0 16px 0;';
   var out = [];
@@ -897,7 +912,7 @@ function buildBeehiivHtml() {
     return html;
   }
 
-  ['Videos', 'Articles', 'Images'].forEach(function(t) {
+  POST_GROUPS.forEach(function(t) {
     var arr = groups[t];
     if (!arr || !arr.length) return;
     out.push('');
