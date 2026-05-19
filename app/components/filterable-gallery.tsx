@@ -7,7 +7,7 @@ import { InlineSubscribe } from "./inline-subscribe";
 
 type ContentType = "Videos" | "Images" | "Cases";
 
-const CONTENT_TYPES: ContentType[] = ["Videos", "Images", "Cases"];
+const CONTENT_TYPES: ContentType[] = ["Videos", "Cases", "Images"];
 const PAGE_SIZE = 12;
 
 function classifyType(post: Post): ContentType {
