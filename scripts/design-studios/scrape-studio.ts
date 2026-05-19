@@ -24,10 +24,14 @@ const KNOWN_SEGMENTS = [
   "works",
   "project",
   "projects",
+  "proyecto",
   "portfolio",
+  "case",
+  "cases",
   "case-study",
   "case-studies",
   "digital",
+  "branding",
 ];
 
 function buildLinkRegex(workUrl: string): RegExp {
@@ -35,6 +39,35 @@ function buildLinkRegex(workUrl: string): RegExp {
   const segments = first ? [first, ...KNOWN_SEGMENTS] : KNOWN_SEGMENTS;
   const uniq = [...new Set(segments)].map((s) => s.replace(/[^a-z0-9-]/gi, ""));
   return new RegExp(`/(?:${uniq.join("|")})/[^/?#]+`, "i");
+}
+
+// Non-project paths to exclude when falling back to flat-slug matching for
+// studios whose project links are bare top-level paths (e.g. /niul, /osesp).
+const NAV_DENYLIST = new Set([
+  "work", "works", "project", "projects", "proyecto", "proyectos", "portfolio",
+  "about", "studio", "studios", "team", "equipo", "contact", "contacto", "hola",
+  "news", "blog", "journal", "careers", "jobs", "shop", "store", "archive",
+  "services", "clients", "press", "home", "index", "search", "cart", "account",
+  "privacy", "cookies", "terms", "legal", "privacy-policy", "cookies-policy",
+  "corporate-policies", "start-a-project", "our-work", "our-skills", "case",
+  "cases", "digital", "branding", "case-study", "case-studies",
+]);
+
+// Predicate for studios with bare top-level project URLs: a same-origin link
+// with exactly one path segment that isn't a known navigation page.
+function flatHrefMatcher(workUrl: string): (href: string) => boolean {
+  const origin = new URL(workUrl).origin;
+  return (href: string): boolean => {
+    let u: URL;
+    try {
+      u = new URL(href, workUrl);
+    } catch {
+      return false;
+    }
+    if (u.origin !== origin) return false;
+    const segs = u.pathname.split("/").filter(Boolean);
+    return segs.length === 1 && !NAV_DENYLIST.has(segs[0].toLowerCase());
+  };
 }
 
 // Extract the first URL from a srcset string (e.g. "img.jpg 800w, img2.jpg 1200w")
@@ -64,17 +97,21 @@ function bgFromStyle(style: string | undefined): string | null {
   return m?.[1] ?? null;
 }
 
-function extractCases($: CheerioAPI, workUrl: string, studioName: string): StudioCase[] {
+function extractCases(
+  $: CheerioAPI,
+  workUrl: string,
+  studioName: string,
+  hrefMatches: (href: string) => boolean,
+): StudioCase[] {
   const origin = new URL(workUrl).origin;
   const studioSlug = studioSlugFrom(workUrl);
-  const linkRe = buildLinkRegex(workUrl);
   const seen = new Set<string>();
   const cases: StudioCase[] = [];
 
   $("a[href]").each((_, el) => {
     const href = $(el).attr("href") ?? "";
-    // must be a project-detail path (e.g. /work/slug, /projects/slug) — not the listing itself
-    if (!linkRe.test(href)) return;
+    // must be a project-detail link — not the listing page or a nav item
+    if (!hrefMatches(href)) return;
 
     const projectUrl = new URL(href, workUrl).href;
     if (seen.has(projectUrl)) return;
@@ -212,11 +249,16 @@ async function fetchHtmlWithPlaywright(workUrl: string): Promise<string | null> 
   try {
     const { chromium } = await import("playwright");
     const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    // A real desktop UA — some studio sites serve an empty shell to the
+    // default headless UA. Scrolling triggers lazy-loaded project grids.
+    const context = await browser.newContext({ userAgent: USER_AGENT });
+    const page = await context.newPage();
     // "domcontentloaded" + a fixed settle wait — many studio sites have
     // constant background network activity, so "networkidle" never fires.
     await page.goto(workUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(4_000);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(2_500);
     const html = await page.content();
     await browser.close();
     return html;
@@ -241,7 +283,16 @@ export async function scrapeStudio(name: string, workUrl: string, limit?: number
     return [];
   }
 
-  const allCases = extractCases($, workUrl, name);
+  const linkRe = buildLinkRegex(workUrl);
+  let allCases = extractCases($, workUrl, name, (href) => linkRe.test(href));
+
+  // Fallback for studios whose project URLs are bare top-level paths
+  // (e.g. /niul, /ensayo-futuro) with no /work/ or /projects/ segment.
+  if (allCases.length === 0) {
+    console.log(`  ↳ No structured project links — trying flat-slug matching`);
+    allCases = extractCases($, workUrl, name, flatHrefMatcher(workUrl));
+  }
+
   const cases = limit && limit > 0 ? allCases.slice(0, limit) : allCases;
 
   // If the same thumbnail URL appears on more than one case it's a listing-page
