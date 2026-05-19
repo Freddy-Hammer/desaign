@@ -181,12 +181,12 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [topicsOpen, setTopicsOpen] = useState(false);
-  const [pendingScrollDay, setPendingScrollDay] = useState<string | null>(null);
-  const [activeDay, setActiveDay] = useState<string | null>(null);
+  const [activeDay, setActiveDay] = useState<string | null>(null); // scroll-spy highlight
+  const [dayFilter, setDayFilter] = useState<string | null>(null); // selected day filter
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [activeTypes, activeTags]);
+  }, [activeTypes, activeTags, dayFilter]);
 
   // Case-insensitive dedup so "Tutorial" / "tutorials" don't both show.
   const availableTags = useMemo(() => {
@@ -208,12 +208,15 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
           activeTags.size === 0 ||
           (!!post.category &&
             activeTags.has(post.category.trim().toLowerCase()));
-        return typeOk && tagOk;
+        const dayOk =
+          !dayFilter || (post.created_at?.slice(0, 10) ?? "unknown") === dayFilter;
+        return typeOk && tagOk && dayOk;
       }),
-    [posts, activeTypes, activeTags],
+    [posts, activeTypes, activeTags, dayFilter],
   );
 
-  const filtersActive = activeTypes.size > 0 || activeTags.size > 0;
+  const filtersActive =
+    activeTypes.size > 0 || activeTags.size > 0 || dayFilter !== null;
 
   function toggleType(type: ContentType) {
     setActiveTypes((prev) => {
@@ -243,6 +246,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
   function clearFilters() {
     setActiveTypes(new Set());
     setActiveTags(new Set());
+    setDayFilter(null);
   }
 
   const visiblePosts = filteredPosts.slice(0, visibleCount);
@@ -289,26 +293,17 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
       });
   }, [posts]);
 
-  function jumpToDay(day: string) {
-    // Clear filters and bump visibility so the target day is rendered.
-    clearFilters();
-    setVisibleCount(posts.length);
-    setActiveDay(day);
-    setPendingScrollDay(day);
-  }
-
-  // Scroll to a day after it has been rendered (after the relevant state
-  // updates have flushed). Using a layout-effect-ish pattern via useEffect
-  // because the DOM node only exists once `visibleCount` includes that day.
-  useEffect(() => {
-    if (!pendingScrollDay) return;
-    const id = dayAnchorId(pendingScrollDay);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setPendingScrollDay(null);
+  // Selecting a day in the archive rail filters the feed to that day only —
+  // no scrolling through the whole history, no loading every post. Clicking
+  // the already-selected day clears the filter.
+  function selectDay(day: string) {
+    setDayFilter((prev) => (prev === day ? null : day));
+    if (typeof document !== "undefined") {
+      document
+        .getElementById("signals")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [pendingScrollDay, visibleCount, dayGroups]);
+  }
 
   // Track which day section is currently in view to highlight the rail.
   useEffect(() => {
@@ -353,8 +348,8 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
       <div className="grid gap-10 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-12">
         <ArchiveRail
           entries={archiveEntries}
-          activeDay={activeDay}
-          onSelect={jumpToDay}
+          activeDay={dayFilter ?? activeDay}
+          onSelect={selectDay}
         />
 
         <div>
