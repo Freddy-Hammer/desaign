@@ -7,6 +7,7 @@ import { scrapeStudio } from "./scrape-studio";
 import { mapToRawItem } from "./map-to-raw-item";
 import { findExisting } from "../lib/dedup";
 import { getSupabase } from "../lib/supabase-client";
+import { storeImage } from "../lib/store-image";
 import { RawItem } from "../lib/raw-item-schema";
 
 // --- Default configuration ---
@@ -161,6 +162,23 @@ async function main() {
       item.metadata = { ...item.metadata, auto_publish: true };
     }
   }
+
+  // Re-host thumbnails on Supabase Storage. Some studios block hotlinking
+  // (403 on a cross-domain Referer, e.g. imaginaryforces.com) so their
+  // images break on the live site; others serve expiring CDN URLs. A
+  // permanent copy avoids both. Original URL is kept if re-hosting fails.
+  console.log(`\nRe-hosting ${newItems.length} thumbnail(s)…`);
+  let rehosted = 0;
+  for (const item of newItems) {
+    if (!item.thumbnail_url) continue;
+    try {
+      item.thumbnail_url = await storeImage(item.thumbnail_url, "studios");
+      rehosted++;
+    } catch (err) {
+      console.error(`  re-host failed (${item.source}): ${(err as Error).message}`);
+    }
+  }
+  console.log(`Re-hosted ${rehosted}/${newItems.length}`);
 
   const { error } = await getSupabase().from("raw_items").insert(newItems);
 

@@ -5,16 +5,17 @@ import type { Post } from "../types/post";
 import { isImageFirstPost, SignalCard } from "./signal-card";
 import { InlineSubscribe } from "./inline-subscribe";
 
-type ContentType = "Videos" | "Images" | "Articles";
+type ContentType = "Videos" | "Images" | "Cases";
 
-const CONTENT_TYPES: ContentType[] = ["Videos", "Images", "Articles"];
+const CONTENT_TYPES: ContentType[] = ["Videos", "Images", "Cases"];
 const PAGE_SIZE = 12;
 
 function classifyType(post: Post): ContentType {
   const src = post.source?.toLowerCase() ?? "";
   if (src.includes("youtube")) return "Videos";
   if (isImageFirstPost(post)) return "Images";
-  return "Articles";
+  // Everything else is a design case study — no plain "articles" yet.
+  return "Cases";
 }
 
 function dayAnchorId(day: string) {
