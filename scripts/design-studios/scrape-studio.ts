@@ -16,6 +16,27 @@ function studioSlugFrom(workUrl: string): string {
   return new URL(workUrl).hostname.replace(/^www\./, "").split(".")[0];
 }
 
+// Path segments that mark a project/case-study detail URL. The studio's own
+// listing-path segment (derived from workUrl) is always included, so a studio
+// on /projects, /works, /portfolio, /digital, etc. is matched the same as /work.
+const KNOWN_SEGMENTS = [
+  "work",
+  "works",
+  "project",
+  "projects",
+  "portfolio",
+  "case-study",
+  "case-studies",
+  "digital",
+];
+
+function buildLinkRegex(workUrl: string): RegExp {
+  const first = new URL(workUrl).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
+  const segments = first ? [first, ...KNOWN_SEGMENTS] : KNOWN_SEGMENTS;
+  const uniq = [...new Set(segments)].map((s) => s.replace(/[^a-z0-9-]/gi, ""));
+  return new RegExp(`/(?:${uniq.join("|")})/[^/?#]+`, "i");
+}
+
 // Extract the first URL from a srcset string (e.g. "img.jpg 800w, img2.jpg 1200w")
 function firstFromSrcset(srcset: string | undefined): string | null {
   if (!srcset) return null;
@@ -46,20 +67,21 @@ function bgFromStyle(style: string | undefined): string | null {
 function extractCases($: CheerioAPI, workUrl: string, studioName: string): StudioCase[] {
   const origin = new URL(workUrl).origin;
   const studioSlug = studioSlugFrom(workUrl);
+  const linkRe = buildLinkRegex(workUrl);
   const seen = new Set<string>();
   const cases: StudioCase[] = [];
 
   $("a[href]").each((_, el) => {
     const href = $(el).attr("href") ?? "";
-    // must be a /work/slug path (not just /work or /work/)
-    if (!/\/work\/[^/?#]+/.test(href)) return;
+    // must be a project-detail path (e.g. /work/slug, /projects/slug) — not the listing itself
+    if (!linkRe.test(href)) return;
 
     const projectUrl = new URL(href, workUrl).href;
     if (seen.has(projectUrl)) return;
     seen.add(projectUrl);
 
-    const slug = href.split("/").filter(Boolean).slice(-1)[0] ?? "";
-    if (!slug || slug === "work") return;
+    const slug = href.split(/[?#]/)[0].split("/").filter(Boolean).slice(-1)[0] ?? "";
+    if (!slug || KNOWN_SEGMENTS.includes(slug.toLowerCase())) return;
 
     const img = $(el).find("img").first();
     const headingText = $(el)
@@ -134,10 +156,11 @@ function extractCases($: CheerioAPI, workUrl: string, studioName: string): Studi
   return cases;
 }
 
-function countProjectLinks($: CheerioAPI): number {
+function countProjectLinks($: CheerioAPI, workUrl: string): number {
+  const linkRe = buildLinkRegex(workUrl);
   let count = 0;
   $("a[href]").each((_, el) => {
-    if (/\/work\/[^/?#]+/.test($(el).attr("href") ?? "")) count++;
+    if (linkRe.test($(el).attr("href") ?? "")) count++;
   });
   return count;
 }
@@ -190,7 +213,10 @@ async function fetchHtmlWithPlaywright(workUrl: string): Promise<string | null> 
     const { chromium } = await import("playwright");
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
-    await page.goto(workUrl, { waitUntil: "networkidle", timeout: 30_000 });
+    // "domcontentloaded" + a fixed settle wait — many studio sites have
+    // constant background network activity, so "networkidle" never fires.
+    await page.goto(workUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(4_000);
     const html = await page.content();
     await browser.close();
     return html;
@@ -204,7 +230,7 @@ export async function scrapeStudio(name: string, workUrl: string, limit?: number
   let html = await fetchHtml(workUrl);
   let $ = html ? load(html) : null;
 
-  if (!$ || countProjectLinks($) === 0) {
+  if (!$ || countProjectLinks($, workUrl) === 0) {
     console.log(`  ↳ Static fetch yielded no links — falling back to Playwright`);
     html = await fetchHtmlWithPlaywright(workUrl);
     $ = html ? load(html) : null;
