@@ -309,17 +309,20 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
       });
   }, [posts]);
 
-  // Selecting a day in the archive rail filters the feed to that day only —
-  // no scrolling through the whole history, no loading every post. Clicking
-  // the already-selected day clears the filter.
+  // Selecting a day in the archive rail filters the feed to that day (plus
+  // the latest day pinned on top). Clicking the already-selected day clears
+  // the filter. The scroll lands on the selected day — see effect below.
   function selectDay(day: string) {
     setDayFilter((prev) => (prev === day ? null : day));
-    if (typeof document !== "undefined") {
-      document
-        .getElementById("signals")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   }
+
+  // After a day is selected, scroll to that day's block once it has rendered.
+  useEffect(() => {
+    if (!dayFilter || typeof document === "undefined") return;
+    document
+      .getElementById(dayAnchorId(dayFilter))
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [dayFilter]);
 
   // Track which day section is currently in view to highlight the rail.
   useEffect(() => {
