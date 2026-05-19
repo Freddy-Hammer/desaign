@@ -144,8 +144,12 @@ function extractCases(
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
+    // An alt that's a bare image filename (e.g. "emblazoned.jpg") is not a
+    // title — discard it so a real heading or the slug is used instead.
+    const altRaw = img.attr("alt")?.trim() ?? "";
+    const alt = /\.(?:jpe?g|png|webp|gif|svg|avif)$/i.test(altRaw) ? "" : altRaw;
     const title =
-      img.attr("alt")?.trim() ||
+      alt ||
       headingText ||
       linkText.split(" ").slice(0, 8).join(" ") ||
       slugText;
