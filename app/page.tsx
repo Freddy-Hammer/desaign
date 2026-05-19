@@ -132,12 +132,12 @@ export default async function Home() {
                     href={featuredPost.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 transition group-hover:text-brand-dark sm:text-[2.4rem]"
+                    className="line-clamp-3 block pb-1 text-3xl font-black leading-[1.15] tracking-tight text-zinc-950 transition group-hover:text-brand-dark sm:text-[2.4rem]"
                   >
                     {featuredPost.title}
                   </a>
                 ) : (
-                  <p className="line-clamp-3 block text-3xl font-black leading-[1.05] tracking-tight text-zinc-950 sm:text-[2.4rem]">
+                  <p className="line-clamp-3 block pb-1 text-3xl font-black leading-[1.15] tracking-tight text-zinc-950 sm:text-[2.4rem]">
                     {featuredPost.title}
                   </p>
                 )}

@@ -199,6 +199,17 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
     return Array.from(seen.values()).sort();
   }, [posts]);
 
+  // The most recent calendar day across all posts — its block always stays
+  // pinned at the top, even when an older day is selected from the archive.
+  const latestDay = useMemo(() => {
+    let max: string | null = null;
+    for (const p of posts) {
+      const d = p.created_at?.slice(0, 10);
+      if (d && (!max || d > max)) max = d;
+    }
+    return max;
+  }, [posts]);
+
   const filteredPosts = useMemo(
     () =>
       posts.filter((post) => {
@@ -208,11 +219,12 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
           activeTags.size === 0 ||
           (!!post.category &&
             activeTags.has(post.category.trim().toLowerCase()));
-        const dayOk =
-          !dayFilter || (post.created_at?.slice(0, 10) ?? "unknown") === dayFilter;
+        // When a day is selected, also keep the latest day visible on top.
+        const postDay = post.created_at?.slice(0, 10) ?? "unknown";
+        const dayOk = !dayFilter || postDay === dayFilter || postDay === latestDay;
         return typeOk && tagOk && dayOk;
       }),
-    [posts, activeTypes, activeTags, dayFilter],
+    [posts, activeTypes, activeTags, dayFilter, latestDay],
   );
 
   const filtersActive =
@@ -249,7 +261,11 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
     setDayFilter(null);
   }
 
-  const visiblePosts = filteredPosts.slice(0, visibleCount);
+  // A selected day is a focused view (latest day + that day) — show it whole,
+  // no pagination. The default feed paginates.
+  const visiblePosts = dayFilter
+    ? filteredPosts
+    : filteredPosts.slice(0, visibleCount);
 
   // Group visible posts by calendar day so each batch gets a typographic divider.
   const dayGroups = useMemo(() => {
@@ -476,7 +492,7 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
                 </div>
               ))}
 
-              {visibleCount < filteredPosts.length && (
+              {!dayFilter && visibleCount < filteredPosts.length && (
                 <div className="mt-12 flex flex-col items-center gap-3">
                   <button
                     onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
