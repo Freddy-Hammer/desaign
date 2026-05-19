@@ -76,18 +76,31 @@ function firstFromSrcset(srcset: string | undefined): string | null {
   return srcset.split(",")[0]?.trim().split(/\s+/)[0] ?? null;
 }
 
-// Return the best available src from an img element, trying every known lazy-load attribute.
+// URLs that look like lazy-load placeholders, sprites, or generated social
+// cards — never a real case-study visual.
+const JUNK_SRC_RE =
+  /placeholder|spacer|blank\.|transparent|pixel\.|1x1|sprite|favicon|loading|lazy-?(?:load|img|placeholder)?\.|opengraph-image/i;
+
+export function isJunkSrc(src: string | null | undefined): boolean {
+  if (!src) return true;
+  if (src.startsWith("data:")) return true;
+  if (/\.svg(?:[?#]|$)/i.test(src)) return true;
+  return JUNK_SRC_RE.test(src);
+}
+
+// Return the best available src from an img element, trying every known
+// lazy-load attribute and preferring a real URL over a placeholder.
 function bestImgSrc($el: ReturnType<CheerioAPI>): string | null {
-  return (
-    $el.attr("src") ??
-    $el.attr("data-src") ??
-    $el.attr("data-lazy-src") ??
-    $el.attr("data-original") ??
-    $el.attr("data-url") ??
-    firstFromSrcset($el.attr("srcset")) ??
-    firstFromSrcset($el.attr("data-srcset")) ??
-    null
-  );
+  const candidates = [
+    $el.attr("src"),
+    $el.attr("data-src"),
+    $el.attr("data-lazy-src"),
+    $el.attr("data-original"),
+    $el.attr("data-url"),
+    firstFromSrcset($el.attr("srcset")),
+    firstFromSrcset($el.attr("data-srcset")),
+  ].filter((s): s is string => !!s);
+  return candidates.find((s) => !isJunkSrc(s)) ?? candidates[0] ?? null;
 }
 
 // Extract background-image URL from an inline style string.
@@ -215,7 +228,7 @@ async function fetchHtml(workUrl: string): Promise<string | null> {
 
 // Fetch the first real image from an individual project page (static only).
 // Used as a fallback when the listing page has no img tags (e.g. video-only tiles).
-async function fetchProjectThumbnail(projectUrl: string): Promise<string | null> {
+export async function fetchProjectThumbnail(projectUrl: string): Promise<string | null> {
   try {
     const res = await fetch(projectUrl, {
       headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
@@ -227,16 +240,16 @@ async function fetchProjectThumbnail(projectUrl: string): Promise<string | null>
     const og =
       html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/)?.[1] ??
       html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/)?.[1];
-    if (og?.trim() && !og.includes("og-image")) return og.trim();
+    if (og?.trim() && !og.includes("og-image") && !isJunkSrc(og.trim())) return og.trim();
 
-    // First non-SVG, non-data-URI img src or data-src
+    // First real img — try src, then every common lazy-load attribute
     const candidates = [
       ...html.matchAll(/<img[^>]*\ssrc=["']([^"']+)["']/g),
-      ...html.matchAll(/<img[^>]*\sdata-src=["']([^"']+)["']/g),
+      ...html.matchAll(/<img[^>]*\sdata-(?:src|lazy-src|original)=["']([^"']+)["']/g),
     ].map((m) => m[1]);
 
     for (const src of candidates) {
-      if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
+      if (isJunkSrc(src)) continue;
       try { return new URL(src, projectUrl).href; } catch { /* skip */ }
     }
     return null;
@@ -268,6 +281,92 @@ async function fetchHtmlWithPlaywright(workUrl: string): Promise<string | null> 
   }
 }
 
+// Picks the largest content image actually rendered on a project page.
+// Passed to page.evaluate() as a STRING expression (not a function) — the
+// tsx/esbuild build wraps named functions in a `__name` helper that is
+// undefined in the browser context, so a function reference would throw.
+// Skips nav/header/footer chrome, logos, and placeholder/sprite URLs.
+const PICK_HERO_JS = `(() => {
+  var junk = /placeholder|spacer|blank\\.|transparent|pixel\\.|1x1|sprite|favicon|loading|logo|icon|opengraph-image|\\.svg|data:/i;
+  var chrome = "header,nav,footer,[class*='header'],[class*='nav'],[class*='footer'],[class*='menu'],[class*='logo'],[class*='cookie']";
+  var inChrome = function (el) { return !!el.closest(chrome); };
+  var best = null, bestArea = 0, r, area;
+  var imgs = Array.prototype.slice.call(document.querySelectorAll("img"));
+  for (var i = 0; i < imgs.length; i++) {
+    var src = imgs[i].currentSrc || imgs[i].src || "";
+    if (!src || junk.test(src) || inChrome(imgs[i])) continue;
+    r = imgs[i].getBoundingClientRect();
+    if (r.width < 320 || r.height < 200) continue;
+    area = r.width * r.height;
+    if (area > bestArea) { bestArea = area; best = src; }
+  }
+  if (best) return best;
+  var vids = Array.prototype.slice.call(document.querySelectorAll("video[poster]"));
+  for (var j = 0; j < vids.length; j++) {
+    if (vids[j].poster && !junk.test(vids[j].poster) && !inChrome(vids[j])) return vids[j].poster;
+  }
+  var els = Array.prototype.slice.call(document.querySelectorAll("div,section,figure,a,span"));
+  for (var k = 0; k < els.length; k++) {
+    var bg = getComputedStyle(els[k]).backgroundImage;
+    var m = bg && bg.match(/url\\(["']?([^"')]+)["']?\\)/);
+    if (!m || junk.test(m[1]) || inChrome(els[k])) continue;
+    r = els[k].getBoundingClientRect();
+    if (r.width < 320 || r.height < 200) continue;
+    area = r.width * r.height;
+    if (area > bestArea) { bestArea = area; best = m[1]; }
+  }
+  return best;
+})()`;
+
+/**
+ * Renders each project page in a real browser and returns a map of
+ * projectUrl → case-study hero image. One browser instance, processed in
+ * small concurrent batches. URLs with no resolvable hero are simply absent.
+ */
+export async function resolveHeroes(projectUrls: string[]): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  const urls = [...new Set(projectUrls)];
+  if (urls.length === 0) return result;
+
+  let browser: Awaited<ReturnType<typeof import("playwright")["chromium"]["launch"]>> | null = null;
+  try {
+    const { chromium } = await import("playwright");
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({ userAgent: USER_AGENT });
+    const CONCURRENCY = 4;
+
+    for (let i = 0; i < urls.length; i += CONCURRENCY) {
+      await Promise.all(
+        urls.slice(i, i + CONCURRENCY).map(async (url) => {
+          const page = await context.newPage();
+          try {
+            await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+            await page.waitForTimeout(3_500);
+            // Nudge the page so lazy-loaded hero images swap in their real src.
+            await page.evaluate("window.scrollTo(0, 900)");
+            await page.waitForTimeout(1_200);
+            await page.evaluate("window.scrollTo(0, 0)");
+            await page.waitForTimeout(600);
+            const hero = (await page.evaluate(PICK_HERO_JS)) as string | null;
+            if (hero) {
+              try { result.set(url, new URL(hero, url).href); } catch { /* skip */ }
+            }
+          } catch (err) {
+            console.error(`  hero render failed (${url}): ${(err as Error).message}`);
+          } finally {
+            await page.close();
+          }
+        }),
+      );
+    }
+  } catch (err) {
+    console.error("  Hero resolution failed:", (err as Error).message);
+  } finally {
+    if (browser) await browser.close();
+  }
+  return result;
+}
+
 export async function scrapeStudio(name: string, workUrl: string, limit?: number): Promise<StudioCase[]> {
   let html = await fetchHtml(workUrl);
   let $ = html ? load(html) : null;
@@ -295,32 +394,24 @@ export async function scrapeStudio(name: string, workUrl: string, limit?: number
 
   const cases = limit && limit > 0 ? allCases.slice(0, limit) : allCases;
 
-  // If the same thumbnail URL appears on more than one case it's a listing-page
-  // placeholder (one shared hero/video cover matched by the sibling search).
-  // Null those out so fetchProjectThumbnail resolves a unique image per case.
-  const thumbCounts = new Map<string, number>();
-  for (const c of cases) {
-    if (c.thumbnailUrl) thumbCounts.set(c.thumbnailUrl, (thumbCounts.get(c.thumbnailUrl) ?? 0) + 1);
-  }
-  for (const c of cases) {
-    if (c.thumbnailUrl && (thumbCounts.get(c.thumbnailUrl) ?? 0) > 1) c.thumbnailUrl = null;
-  }
-
-  // Resolve missing thumbnails by fetching each project page individually.
-  // Handles studios that show videos (not images) in their work listing.
-  const missing = cases.filter((c) => !c.thumbnailUrl);
-  if (missing.length > 0) {
-    console.log(`  ↳ Resolving ${missing.length} missing thumbnails from project pages…`);
-    const BATCH = 5;
-    for (let i = 0; i < missing.length; i += BATCH) {
-      await Promise.all(
-        missing.slice(i, i + BATCH).map(async (c) => {
-          c.thumbnailUrl = await fetchProjectThumbnail(c.projectUrl);
-        })
-      );
+  // Resolve the thumbnail for every case from the project page itself.
+  // Listing-page images are routinely lazy-load placeholders or one shared
+  // cover, and og:image is often a branded social card — the rendered
+  // case-page hero is the only consistently correct visual.
+  if (cases.length > 0) {
+    console.log(`  ↳ Resolving ${cases.length} thumbnail(s) from project pages…`);
+    const heroes = await resolveHeroes(cases.map((c) => c.projectUrl));
+    for (const c of cases) {
+      const hero = heroes.get(c.projectUrl);
+      if (hero) {
+        c.thumbnailUrl = hero;
+      } else if (!c.thumbnailUrl || isJunkSrc(c.thumbnailUrl)) {
+        // Hero render failed — fall back to a static og:image / first img.
+        c.thumbnailUrl = await fetchProjectThumbnail(c.projectUrl);
+      }
     }
-    const resolved = missing.filter((c) => c.thumbnailUrl).length;
-    console.log(`  ↳ Resolved ${resolved}/${missing.length} thumbnails`);
+    const resolved = cases.filter((c) => c.thumbnailUrl).length;
+    console.log(`  ↳ Resolved ${resolved}/${cases.length} thumbnails`);
   }
 
   return cases;
