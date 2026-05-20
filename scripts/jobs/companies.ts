@@ -25,6 +25,18 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Udio", platform: "greenhouse", slug: "udio" },
   // IDEO embeds Greenhouse listings via JS on ideo.com/careers — slug "ideo" confirmed by boards-api.
   { name: "IDEO", platform: "greenhouse", slug: "ideo" },
+  // Mid-market product cos
+  { name: "Vercel", platform: "greenhouse", slug: "vercel" },
+  { name: "Discord", platform: "greenhouse", slug: "discord" },
+  { name: "Squarespace", platform: "greenhouse", slug: "squarespace" },
+  { name: "Asana", platform: "greenhouse", slug: "asana" },
+  { name: "Mixpanel", platform: "greenhouse", slug: "mixpanel" },
+  { name: "Lattice", platform: "greenhouse", slug: "lattice" },
+  { name: "Brex", platform: "greenhouse", slug: "brex" },
+  // Design agencies with public Greenhouse boards
+  { name: "Code and Theory", platform: "greenhouse", slug: "codeandtheory" },
+  { name: "AKQA", platform: "greenhouse", slug: "akqa" },
+  { name: "R/GA", platform: "greenhouse", slug: "rga" },
 
   // --- Lever (verified via api.lever.co) ---
   { name: "Spotify", platform: "lever", slug: "spotify" },
@@ -48,6 +60,19 @@ export const COMPANIES: CompanyConfig[] = [
   // Migrated off Greenhouse since first verification — both now on Ashby.
   { name: "Runway", platform: "ashby", slug: "runway" },
   { name: "Ideogram", platform: "ashby", slug: "ideogram" },
+  // Mid-market product cos on Ashby
+  { name: "Ramp", platform: "ashby", slug: "ramp" },
+  { name: "Mintlify", platform: "ashby", slug: "mintlify" },
+  { name: "Modal Labs", platform: "ashby", slug: "modal" },
+  { name: "Vanta", platform: "ashby", slug: "vanta" },
+  { name: "Substack", platform: "ashby", slug: "substack" },
+  { name: "Granola", platform: "ashby", slug: "granola" },
+  { name: "Sentry", platform: "ashby", slug: "sentry" },
+  { name: "Mux", platform: "ashby", slug: "mux" },
+  { name: "Replit", platform: "ashby", slug: "replit" },
+  // Boards verified live but currently empty — leave active so they populate when roles open.
+  { name: "Mercury", platform: "ashby", slug: "mercury" },
+  { name: "Raycast", platform: "ashby", slug: "raycast" },
 
   // --- Ashby but slug obfuscated; Framer embeds via ashby_jid params ---
   {
@@ -94,6 +119,25 @@ export const COMPANIES: CompanyConfig[] = [
   { name: "Shopify", platform: "skip", skip: true, todo: "self-hosted careers; JS-rendered, would need Playwright. Manual entry until justified." },
   { name: "Uizard", platform: "skip", skip: true, todo: "LinkedIn-driven; no public ATS endpoint detected." },
   { name: "DesignStudio", platform: "skip", skip: true, todo: "rebranded to Further Group; careers at further.group/careers — verify before scraping." },
+
+  // --- Probed 2026-05-20, no public ATS exposed — don't re-probe ---
+  { name: "Loom", platform: "skip", skip: true, todo: "Ashby board exists but empty since Atlassian acquisition; hiring rolled into Atlassian's own system." },
+  { name: "Atlassian", platform: "skip", skip: true, todo: "Lever board returns []; main hiring on proprietary jobs.atlassian.com (Workday-like)." },
+  { name: "Netflix", platform: "skip", skip: true, todo: "Lever board returns []; design hiring on jobs.netflix.com." },
+  { name: "Coda", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — acquired by Grammarly, hiring likely on Grammarly board." },
+  { name: "Vimeo", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — proprietary careers system." },
+  { name: "GitHub", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — uses Microsoft Careers (Workday)." },
+  { name: "Canva", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — own careers system at lifeatcanva.com." },
+  { name: "Hugging Face", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — careers page is a Notion doc, no structured listings." },
+  { name: "Replicate", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — listings on replicate.com/jobs, would need custom scrape." },
+  { name: "Pitch", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — likely sunset hiring after pivot." },
+  { name: "Bluesky", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — careers via standard form, no public ATS." },
+  { name: "Retool", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby despite size — likely on a private board." },
+  { name: "Work & Co", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — listings on work.co/careers, custom scrape if needed." },
+  { name: "Mother Design", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — careers via mother-design.com, no public ATS." },
+  { name: "Stink Studios", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — proprietary careers page." },
+  { name: "Huge", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — own careers system." },
+  { name: "Field.io", platform: "skip", skip: true, todo: "404 on GH/Lever/Ashby — no public ATS, likely email-only." },
 ];
 
 export function activeCompanies(): CompanyConfig[] {
