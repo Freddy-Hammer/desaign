@@ -2,11 +2,29 @@ import * as cheerio from "cheerio";
 import { ShowcasePick } from "../types";
 import { fetchHtml } from "../fetch-html";
 
-const HOME = "https://cssdesignawards.com/";
+// Homepages: try the canonical www host first (it's what cssdesignawards.com
+// redirects to and what their CDN serves most reliably), then the apex as a
+// fallback. CI runners occasionally see transient anti-bot challenges on one
+// host but not the other.
+const HOMES = ["https://www.cssdesignawards.com/", "https://cssdesignawards.com/"];
 const HOST = "https://cssdesignawards.com";
 
 export async function pickCssda(): Promise<ShowcasePick | null> {
-  const html = await fetchHtml(HOME);
+  let html = "";
+  let homeUsed = "";
+  let lastFetchErr: Error | null = null;
+  for (const home of HOMES) {
+    try {
+      html = await fetchHtml(home);
+      homeUsed = home;
+      break;
+    } catch (err) {
+      lastFetchErr = err as Error;
+    }
+  }
+  if (!homeUsed) {
+    throw new Error(`CSSDA homepage fetch failed on all hosts: ${lastFetchErr?.message ?? "unknown"}`);
+  }
   const $ = cheerio.load(html);
 
   // SOTD card on the homepage. Detail URL pattern: /sites/<slug>/<id>/
@@ -18,18 +36,31 @@ export async function pickCssda(): Promise<ShowcasePick | null> {
 
   let card: cheerio.Cheerio<any> | null = null;
   let detailHref: string | undefined;
+  const selectorCounts: Record<string, number> = {};
   for (const sel of candidates) {
-    const a = $(sel).first();
-    if (a.length) {
-      const href = a.attr("href") || "";
-      if (/^\/sites\/[^/]+\/\d+\/?$/.test(href)) {
-        card = a;
-        detailHref = href;
-        break;
+    const matches = $(sel);
+    selectorCounts[sel] = matches.length;
+    if (!card) {
+      for (let i = 0; i < matches.length; i++) {
+        const a = matches.eq(i);
+        const href = a.attr("href") || "";
+        if (/^\/sites\/[^/]+\/\d+\/?$/.test(href)) {
+          card = a;
+          detailHref = href;
+          break;
+        }
       }
     }
   }
-  if (!card || !detailHref) return null;
+  if (!card || !detailHref) {
+    // Surface failure loudly in CI logs (silent nulls are how 2026-05-21 and
+    // 2026-05-22 went missing for two days before anyone noticed).
+    const counts = Object.entries(selectorCounts).map(([s, n]) => `${s}=${n}`).join(", ");
+    throw new Error(
+      `CSSDA: no SOTD link found on ${homeUsed} (html=${html.length}B, selectors: ${counts}). ` +
+        `Page structure may have changed or response was an anti-bot challenge.`
+    );
+  }
 
   const detailUrl = detailHref.startsWith("http") ? detailHref : HOST + detailHref;
   const slug = detailHref.split("/")[2] || "unknown";
