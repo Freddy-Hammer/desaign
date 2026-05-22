@@ -56,11 +56,35 @@ const FRESHNESS_DAYS = readNumberArg("--freshness", DEFAULT_FRESHNESS_DAYS);
 const MAX_ITEMS_PER_CHANNEL = readNumberArg("--max-items", DEFAULT_MAX_ITEMS_PER_CHANNEL);
 // --top=N: after dedup, keep only the N most recent items (sorted by publishedAt desc).
 // --one-per-channel: enforce at most one item per channel in the final selection.
-// Both flags are designed for automated runs; manual runs leave them unset.
+// --diversity-days=N: deprioritize channels that already had a YouTube row inserted
+//   within the last N days, so the daily mix rotates across the channel list.
+// All three flags are designed for automated runs; manual runs leave them unset.
 const TOP_N = readNumberArg("--top", Infinity);
 const ONE_PER_CHANNEL = process.argv.includes("--one-per-channel");
+const DIVERSITY_DAYS = readNumberArg("--diversity-days", 0);
 // --auto-publish: tags items so scripts/auto-publish.ts promotes them directly to posts + Telegram.
 const AUTO_PUBLISH = process.argv.includes("--auto-publish");
+
+async function fetchRecentChannels(days: number): Promise<Set<string>> {
+  if (days <= 0) return new Set();
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const { data, error } = await getSupabase()
+    .from("raw_items")
+    .select("metadata")
+    .eq("source", "YouTube")
+    .gte("created_at", since.toISOString());
+  if (error) {
+    console.warn(`Diversity lookup failed (${error.message}); proceeding without it`);
+    return new Set();
+  }
+  const recent = new Set<string>();
+  for (const row of data ?? []) {
+    const url = (row.metadata as { channel_url?: string } | null)?.channel_url;
+    if (url) recent.add(url);
+  }
+  return recent;
+}
 
 async function main() {
   const publishedAfter = new Date();
@@ -107,13 +131,24 @@ async function main() {
   let newItems = allCandidates.filter(({ item }) => !existing.has(item.source_url));
   const dupCount = allCandidates.length - newItems.length;
 
-  // --top / --one-per-channel selection (used by the daily automated workflow).
-  // Sort newest-first, optionally enforce one item per channel, then cap at TOP_N.
-  if (ONE_PER_CHANNEL || TOP_N < Infinity) {
-    newItems.sort((a, b) =>
-      ((b.item.metadata as any)?.view_count ?? 0) -
-      ((a.item.metadata as any)?.view_count ?? 0)
-    );
+  // --top / --one-per-channel / --diversity-days selection (used by the daily workflow).
+  // Sort by view_count desc, but bubble channels that DIDN'T appear in the last
+  // DIVERSITY_DAYS days to the front so the daily mix rotates across the list.
+  if (ONE_PER_CHANNEL || TOP_N < Infinity || DIVERSITY_DAYS > 0) {
+    const recentChannels =
+      INSERT_MODE && DIVERSITY_DAYS > 0 ? await fetchRecentChannels(DIVERSITY_DAYS) : new Set<string>();
+    if (recentChannels.size > 0) {
+      console.log(`Diversity: ${recentChannels.size} channel(s) seen in last ${DIVERSITY_DAYS} day(s), deprioritized`);
+    }
+    newItems.sort((a, b) => {
+      const aRecent = recentChannels.has(a.channelUrl) ? 1 : 0;
+      const bRecent = recentChannels.has(b.channelUrl) ? 1 : 0;
+      if (aRecent !== bRecent) return aRecent - bRecent; // fresh channels first
+      return (
+        ((b.item.metadata as any)?.view_count ?? 0) -
+        ((a.item.metadata as any)?.view_count ?? 0)
+      );
+    });
     if (ONE_PER_CHANNEL) {
       const seenChannels = new Set<string>();
       newItems = newItems.filter(({ channelUrl }) => {
@@ -125,7 +160,7 @@ async function main() {
     if (TOP_N < Infinity) {
       newItems = newItems.slice(0, TOP_N);
     }
-    console.log(`Selection: ${newItems.length} item(s) after top/one-per-channel filter`);
+    console.log(`Selection: ${newItems.length} item(s) after diversity/top/one-per-channel filter`);
   }
 
   // Auto-reject rows with no thumbnail so they preserve the dedup invariant

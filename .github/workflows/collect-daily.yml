@@ -25,7 +25,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: npx tsx scripts/youtube/run.ts --insert --freshness=3 --max-items=10 --top=3 --one-per-channel --auto-publish
+        run: npx tsx scripts/youtube/run.ts --insert --freshness=3 --max-items=10 --top=5 --one-per-channel --diversity-days=2 --auto-publish
 
       - name: Collect Sites of the Day (Awwwards / TheFWA / CSSDA)
         env:
