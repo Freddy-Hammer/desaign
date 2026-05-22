@@ -35,6 +35,12 @@ const DEFAULT_CHANNELS = [
 ];
 const DEFAULT_FRESHNESS_DAYS = 7;
 const DEFAULT_MAX_ITEMS_PER_CHANNEL = 50;
+// Channels exempt from the diversity rotation — they're our primary tools,
+// so it's fine if they appear daily alongside the rotated picks.
+const PRIORITY_CHANNELS = new Set([
+  "https://www.youtube.com/@claude",
+  "https://www.youtube.com/@Figma",
+]);
 // -----------------------------
 
 const INSERT_MODE = process.argv.includes("--insert");
@@ -141,8 +147,9 @@ async function main() {
       console.log(`Diversity: ${recentChannels.size} channel(s) seen in last ${DIVERSITY_DAYS} day(s), deprioritized`);
     }
     newItems.sort((a, b) => {
-      const aRecent = recentChannels.has(a.channelUrl) ? 1 : 0;
-      const bRecent = recentChannels.has(b.channelUrl) ? 1 : 0;
+      // Priority channels are never penalized by the diversity rotation.
+      const aRecent = !PRIORITY_CHANNELS.has(a.channelUrl) && recentChannels.has(a.channelUrl) ? 1 : 0;
+      const bRecent = !PRIORITY_CHANNELS.has(b.channelUrl) && recentChannels.has(b.channelUrl) ? 1 : 0;
       if (aRecent !== bRecent) return aRecent - bRecent; // fresh channels first
       return (
         ((b.item.metadata as any)?.view_count ?? 0) -
