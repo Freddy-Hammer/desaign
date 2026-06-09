@@ -1,0 +1,37 @@
+name: collect-showcase
+
+on:
+  schedule:
+    - cron: '0 15 * * *'  # 15:00 UTC daily — late enough for Awwwards to publish that day's Site of the Day
+  workflow_dispatch: {}   # manual trigger from the Actions tab
+
+# Afternoon batch: Sites of the Day only. YouTube + case studies run in the
+# morning — see collect-morning.yml.
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Collect Sites of the Day (Awwwards / TheFWA / CSSDA)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/showcase/run.ts --insert --auto-publish
+
+      - name: Publish to posts + Telegram
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: npx tsx scripts/auto-publish.ts

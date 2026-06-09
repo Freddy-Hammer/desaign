@@ -1,7 +1,7 @@
 /**
  * Promotes raw_items tagged with metadata.auto_publish=true directly to
  * posts and sends each to Telegram. Called as the final step of the
- * collect-daily GitHub Actions workflow.
+ * collect-morning and collect-showcase GitHub Actions workflows.
  *
  * Required env vars:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,

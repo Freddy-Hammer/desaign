@@ -48,7 +48,15 @@ export default async function Home() {
     .order("created_at", { ascending: false });
 
   const posts = diversifyOrder((data ?? []) as Post[]);
-  const featuredPost = posts[0] ?? null;
+
+  // Rule: an image-first post (e.g. a Thought) must never lead the page as the
+  // featured header. Feature the first non-image post; the image post then
+  // falls to the top of the grid (second position overall).
+  const featuredPost =
+    posts.find((p) => classifyPostType(p) !== "image") ?? posts[0] ?? null;
+  const restPosts = featuredPost
+    ? posts.filter((p) => p.id !== featuredPost.id)
+    : posts;
 
   // Featured-card image block — reused whether or not the post links out.
   const featuredImageInner = featuredPost && (
@@ -181,8 +189,8 @@ export default async function Home() {
 
       <JobsStrip />
 
-      {!error && posts.length > 1 && (
-        <FilterableGallery posts={posts.slice(1)} />
+      {!error && restPosts.length > 0 && (
+        <FilterableGallery posts={restPosts} />
       )}
 
       <SiteFooter />
