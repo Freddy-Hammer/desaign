@@ -59,7 +59,10 @@ async function main() {
     (f) => f.name && /\.(png|jpe?g|webp|gif)$/i.test(f.name),
   );
   if (images.length === 0) {
-    console.log("No images in storage — drop some into incoming-images/ and upload.");
+    console.error(
+      "::error::No images in storage — drop some into incoming-images/ and run scripts/storage/upload-folder.ts",
+    );
+    if (!DRY_RUN) process.exit(1);
     return;
   }
 
@@ -76,12 +79,18 @@ async function main() {
   if (usedErr) throw new Error(`posts lookup failed: ${usedErr.message}`);
   const used = new Set((usedRows ?? []).map((r) => r.thumbnail_url));
 
-  const pick = urls.find((u) => !used.has(u));
+  const remaining = urls.filter((u) => !used.has(u));
+  const pick = remaining[0];
   if (!pick) {
-    console.log(
-      "Every uploaded image has already been posted. Add new ones to incoming-images/.",
+    console.error(
+      "::error::Thought image pool is empty — every uploaded image has already " +
+        "been posted. Add new ones to incoming-images/ and run scripts/storage/upload-folder.ts.",
     );
+    if (!DRY_RUN) process.exit(1);
     return;
+  }
+  if (remaining.length <= 3) {
+    console.warn(`::warning::Only ${remaining.length} unused Thought image(s) left — refill soon.`);
   }
 
   if (DRY_RUN) {

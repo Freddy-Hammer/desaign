@@ -8,7 +8,9 @@ import { SiteFooter } from "./components/site-footer";
 import { JsonLd } from "./components/json-ld";
 import { SITE_URL, itemListJsonLd } from "@/lib/seo";
 
-export const revalidate = 0;
+// The feed is written once a day by collect-morning (08:00 UTC), so
+// per-request rendering bought nothing but a guaranteed edge-cache MISS.
+export const revalidate = 300;
 
 function classifyPostType(post: Post): "video" | "image" | "article" {
   const src = post.source?.toLowerCase() ?? "";

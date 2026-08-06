@@ -13,6 +13,7 @@ import * as path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
 import { getSupabase } from "./lib/supabase-client";
+import { probeImage } from "./lib/probe-image";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
@@ -44,19 +45,40 @@ async function sendToTelegram(post: {
 }): Promise<void> {
   if (!BOT_TOKEN || !CHANNEL_ID) throw new Error("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID");
   const caption = buildCaption(post);
-  const hasThumbnail = Boolean(post.thumbnail_url);
-  const method = hasThumbnail ? "sendPhoto" : "sendMessage";
-  const body = hasThumbnail
-    ? { chat_id: CHANNEL_ID, photo: post.thumbnail_url, caption, parse_mode: "HTML" }
-    : { chat_id: CHANNEL_ID, text: caption, parse_mode: "HTML", disable_web_page_preview: false };
 
-  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const call = async (method: string, body: unknown) => {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return (await res.json()) as { ok: boolean; description?: string };
+  };
+
+  // A thumbnail URL that exists but serves nothing usable (TheFWA publishes
+  // 0-byte PNGs with HTTP 200) must degrade to a text post, not lose the item.
+  const usablePhoto = Boolean(post.thumbnail_url) && (await probeImage(post.thumbnail_url!));
+
+  if (usablePhoto) {
+    const photo = await call("sendPhoto", {
+      chat_id: CHANNEL_ID,
+      photo: post.thumbnail_url,
+      caption,
+      parse_mode: "HTML",
+    });
+    if (photo.ok) return;
+    console.warn(
+      `    sendPhoto rejected (${photo.description ?? "unknown"}) — retrying as sendMessage`,
+    );
+  }
+
+  const text = await call("sendMessage", {
+    chat_id: CHANNEL_ID,
+    text: caption,
+    parse_mode: "HTML",
+    disable_web_page_preview: false,
   });
-  const json = (await res.json()) as { ok: boolean; description?: string };
-  if (!json.ok) throw new Error(json.description ?? "Telegram API error");
+  if (!text.ok) throw new Error(text.description ?? "Telegram API error");
 }
 
 async function main() {
@@ -119,7 +141,15 @@ async function main() {
 
       await sendToTelegram(postData);
 
-      await sb.from("posts").update({ telegram_sent: true }).eq("id", inserted.id);
+      const { error: te } = await sb
+        .from("posts")
+        .update({ telegram_sent: true })
+        .eq("id", inserted.id);
+      if (te) {
+        // The message HAS been delivered — never throw here, or the catch below
+        // would count it as failed and invite a duplicate resend.
+        console.warn(`    ⚠ sent, but telegram_sent flag not set: ${te.message}`);
+      }
 
       console.log(`  ✓ ${postData.title}`);
       published++;

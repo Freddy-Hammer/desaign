@@ -21,6 +21,7 @@ import { pickCssda } from "./sources/cssda";
 import { mapToRawItem } from "./map-to-raw-item";
 import { findExisting } from "../lib/dedup";
 import { getSupabase } from "../lib/supabase-client";
+import { probeImage } from "../lib/probe-image";
 import { ShowcasePick } from "./types";
 
 const INSERT_MODE = process.argv.includes("--insert");
@@ -64,11 +65,22 @@ async function main() {
   // Auto-reject any pick with no thumbnail so it never appears in the queue
   // but still preserves the dedup invariant.
   let autoRejected = 0;
+  const needsReview = new Set<string>();
   for (const item of items) {
     if (!item.thumbnail_url) {
       item.status = "rejected";
       item.notes = "Auto-rejected: no thumbnail";
       autoRejected++;
+      continue;
+    }
+    // A URL that exists but serves nothing usable must not be auto-published.
+    // It must NOT be auto-rejected either: rejected rows are never hard-deleted
+    // (dedup invariant), so the pick could never be re-collected once the source
+    // regenerates its thumbnail. Send it to the human review queue instead.
+    if (!(await probeImage(item.thumbnail_url))) {
+      needsReview.add(item.source_url);
+      item.notes =
+        "Thumbnail URL returned no usable image — needs a manual thumbnail before publishing";
     }
   }
 
@@ -100,8 +112,16 @@ async function main() {
   }
 
   if (AUTO_PUBLISH) {
+    let heldForReview = 0;
     for (const item of newItems) {
+      if (needsReview.has(item.source_url)) {
+        heldForReview++; // stays status='new' with NO auto_publish flag
+        continue;
+      }
       item.metadata = { ...item.metadata, auto_publish: true };
+    }
+    if (heldForReview > 0) {
+      console.log(`Held for review: ${heldForReview} (unusable thumbnail)`);
     }
   }
 

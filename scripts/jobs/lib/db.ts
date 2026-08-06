@@ -64,11 +64,29 @@ export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number; reope
     return base;
   });
 
+  // PostgREST derives ONE `columns=` list from the UNION of every key in the
+  // array and writes NULL for any row missing one of them. supabase-js only
+  // sends `Prefer: missing=default` when defaultToNull:false — which we must
+  // NOT use, because it doesn't apply on the merge path and would resolve
+  // first_seen_at to now() on every run, re-broadcasting the whole board.
+  // `rows` has up to 4 shapes (reopened x has-description), so send each shape
+  // as its own request and let each request's columns= list say exactly what
+  // it intends to write.
+  const groups = new Map<string, typeof rows>();
+  for (const r of rows) {
+    const key = Object.keys(r).sort().join(",");
+    const g = groups.get(key);
+    if (g) g.push(r);
+    else groups.set(key, [r]);
+  }
+
   let upserted = 0;
-  for (const batch of chunk(rows, BATCH)) {
-    const { error } = await sb.from("jobs").upsert(batch, { onConflict: "id" });
-    if (error) throw new Error(`upsert jobs failed: ${error.message}`);
-    upserted += batch.length;
+  for (const group of groups.values()) {
+    for (const batch of chunk(group, BATCH)) {
+      const { error } = await sb.from("jobs").upsert(batch, { onConflict: "id" });
+      if (error) throw new Error(`upsert jobs failed: ${error.message}`);
+      upserted += batch.length;
+    }
   }
   return { upserted, reopened: reopenedIds.size };
 }
@@ -79,6 +97,13 @@ export async function upsertJobs(jobs: Job[]): Promise<{ upserted: number; reope
  * removed from the manual file.
  */
 export async function deactivateUnseen(seenIds: string[]): Promise<{ deactivated: number }> {
+  // Hard floor: an empty seen-set can only mean the scrape failed. Never let
+  // that be interpreted as "every listing has closed".
+  if (seenIds.length === 0) {
+    throw new Error(
+      "deactivateUnseen called with an empty seen set — refusing to deactivate every job",
+    );
+  }
   const sb = getSupabase();
   const { data, error } = await sb
     .from("jobs")

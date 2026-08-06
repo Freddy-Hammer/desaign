@@ -24,12 +24,40 @@ async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/**
+ * Anti-bot interstitials are served with a 2xx status, so `res.ok` is true and
+ * the tiny challenge page flows downstream as if it were the real document —
+ * where it surfaces as a misleading "selectors may have changed" error.
+ * SiteGround (cssdesignawards.com) answers HTTP 202 with a 168-byte
+ * meta-refresh to /.well-known/sgcaptcha/. Detect it and say so plainly.
+ */
+function botChallengeReason(body: string): string | null {
+  if (body.length > 2048) return null;
+  if (/\.well-known\/sgcaptcha/i.test(body)) return "SiteGround sgcaptcha";
+  if (/<meta[^>]+http-equiv=["']?refresh/i.test(body) && /captcha|challenge/i.test(body)) {
+    return "captcha meta-refresh";
+  }
+  if (/cf-browser-verification|cf_chl_opt|Just a moment\.\.\./i.test(body)) return "Cloudflare";
+  return null;
+}
+
 async function fetchWithRetry(url: string, accept: string, retries = 2): Promise<string> {
   let lastErr: Error | null = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) await sleep(1500 * attempt);
     const res = await fetch(url, { headers: { ...BROWSER_HEADERS, Accept: accept } });
-    if (res.ok) return res.text();
+    if (res.ok) {
+      const body = await res.text();
+      const challenge = botChallengeReason(body);
+      if (challenge) {
+        // Retrying can't solve a captcha — fail fast with an accurate message.
+        throw new Error(
+          `Blocked by anti-bot (${challenge}, HTTP ${res.status}) at ${url} — ` +
+            `server-side fetch is not possible for this host`,
+        );
+      }
+      return body;
+    }
     if (res.status === 429 || res.status >= 500) {
       lastErr = new Error(`HTTP ${res.status} for ${url}`);
       continue;

@@ -8,7 +8,7 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
 
@@ -38,3 +38,22 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: npx tsx scripts/jobs/telegram-post.ts --max=2
+
+      - name: Alert on failure
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ALERT_CHAT_ID:-}" ]; then
+            echo "::warning::TELEGRAM_ALERT_CHAT_ID is not set — no failure alert sent"
+            exit 0
+          fi
+          curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${ALERT_CHAT_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=❌ Workflow failed: ${WORKFLOW_NAME}
+          ${RUN_URL}"

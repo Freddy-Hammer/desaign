@@ -124,6 +124,21 @@ async function main() {
   }
 
   const seenIds = scraped.map((j) => j.id);
+
+  // Per-company scraper errors are swallowed above, so a badly degraded run
+  // still reaches this point with `scraped` empty or near-empty — and
+  // deactivateUnseen would then wipe the public board. Refuse, loudly.
+  const failedCount = results.filter((r) => r.error).length;
+  const degraded = seenIds.length === 0 || failedCount > Math.floor(companies.length * 0.3);
+  if (degraded && !process.argv.includes("--force-deactivate")) {
+    console.error(
+      `  ! degraded run (${failedCount}/${companies.length} scrapers failed, ` +
+        `${seenIds.length} jobs scraped) — skipping deactivateUnseen. ` +
+        `Rerun with --force-deactivate if this is a legitimate bulk removal.`,
+    );
+    process.exit(1);
+  }
+
   const { deactivated } = await deactivateUnseen(seenIds);
   console.log(`  scraper rows deactivated (no longer listed): ${deactivated}`);
 }

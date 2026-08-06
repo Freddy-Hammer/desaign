@@ -1,4 +1,5 @@
 import type { Post } from "../types/post";
+import { PostImage } from "./post-image";
 
 export function formatDate(value: string | null) {
   if (!value) {
@@ -34,38 +35,12 @@ export function isImageFirstPost(post: Post) {
   );
 }
 
-export function PostImage({
-  imageUrl,
-  title,
-  className,
-}: {
-  imageUrl: string | null;
-  title: string;
-  className: string;
-}) {
-  if (!imageUrl) {
-    return (
-      <div
-        className={`${className} flex items-center justify-center bg-[linear-gradient(135deg,#111827,#155e75_48%,#f59e0b)]`}
-      >
-        <span className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">
-          DesAIgn
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    // External thumbnails can come from many creator platforms, so keep MVP
-    // image rendering provider-agnostic until the source list stabilizes.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={imageUrl}
-      alt={title}
-      className={`${className} object-cover`}
-    />
-  );
-}
+// PostImage lives in its own "use client" module because it needs an onError
+// fallback (dead CDN thumbnails must show the branded gradient, not a blank
+// box). Re-exported here so every existing import path keeps working — this
+// module must stay server-safe, since app/page.tsx calls formatDate,
+// getSourceTone and isImageFirstPost from it during a server render.
+export { PostImage };
 
 export function SignalCard({ post }: { post: Post }) {
   // Own original content (memes) has no external link — those cards render as
