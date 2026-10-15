@@ -1,0 +1,77 @@
+name: keepalive
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'   # Mondays 07:00 UTC
+  push:
+    branches: [main]
+    paths: ['.github/workflows/keepalive.yml']
+  workflow_dispatch: {}   # manual trigger from the Actions tab
+
+# GitHub disables every scheduled workflow in a public repo after 60 days
+# without a commit — that silently stopped the whole site on 2026-10-06.
+# This job (1) switches the daily workflows back on if they were disabled,
+# and (2) pushes an empty commit once the repo has been quiet for 40 days,
+# so the 60-day timer never runs out.
+permissions:
+  actions: write    # enable + dispatch workflows
+  contents: write   # push the keepalive commit
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Re-enable daily workflows if GitHub disabled them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # $1 = workflow file, $2 = "run" to start a catch-up run right after re-enabling
+          reenable() {
+            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$1" --jq .state)
+            if [ "$state" = "active" ]; then echo "$1: active"; return; fi
+            echo "::warning::$1 was $state — re-enabling"
+            gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/$1/enable"
+            if [ "${2:-}" = "run" ]; then
+              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/workflows/$1/dispatches" -f ref="$GITHUB_REF_NAME"
+            fi
+          }
+          reenable collect-morning.yml run
+          reenable scrape-jobs.yml run
+          # No catch-up run: its publish step would race collect-morning's
+          # (both promote the same raw_items), and it runs at 15:00 UTC anyway.
+          reenable collect-showcase.yml
+
+      - name: Push an empty commit if the repo has been quiet for 40+ days
+        run: |
+          set -euo pipefail
+          age_days=$(( ($(date +%s) - $(git log -1 --format=%ct)) / 86400 ))
+          echo "Last commit was $age_days day(s) ago"
+          if [ "$age_days" -lt 40 ]; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "keepalive: repo quiet for $age_days days"
+          git push
+
+      - name: Alert on failure
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ALERT_CHAT_ID:-}" ]; then
+            echo "::warning::TELEGRAM_ALERT_CHAT_ID is not set — no failure alert sent"
+            exit 0
+          fi
+          curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${ALERT_CHAT_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=❌ Workflow failed: ${WORKFLOW_NAME}
+          ${RUN_URL}"

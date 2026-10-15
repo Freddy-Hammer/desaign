@@ -45,7 +45,7 @@ npx tsx scripts/storage/upload-folder.ts   # upload files from incoming-images/ 
 
 # Weekly "Thought" post — picks the oldest unposted uploaded image,
 # publishes it to posts (linkless, category 'Thought') + Telegram.
-# Runs every Tuesday via .github/workflows/weekly-thought.yml.
+# Manual only — the Tuesday workflow was removed in Oct 2026 (no more images planned).
 npx tsx scripts/thoughts/post-weekly.ts            # post one
 npx tsx scripts/thoughts/post-weekly.ts --dry-run  # show the pick, write nothing
 ```
@@ -108,5 +108,6 @@ TELEGRAM_CHANNEL_ID               # scripts/telegram only — numeric channel ID
 - **Reusable scripts**: if it repeats, write a script in `scripts/`. Scripts must accept inputs via args/env vars, avoid hardcoded secrets, and be safe to rerun.
 - **Context budget**: never read `.next/`, `node_modules/`, or media files. Grep before broad reads.
 - **New collectors**: future sources (Instagram, Medium, LinkedIn) should add a folder under `scripts/` and reuse `scripts/lib/`.
+- **Keepalive**: GitHub disables scheduled workflows after 60 days without a commit. `.github/workflows/keepalive.yml` re-enables them weekly and pushes an empty commit after 40 quiet days — add any new scheduled workflow to its `reenable` list.
 
 Full product spec and publishing rules: `operating-brief/README.md`.
