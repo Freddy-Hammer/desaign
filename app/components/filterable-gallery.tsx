@@ -22,19 +22,27 @@ function dayAnchorId(day: string) {
   return `day-${day}`;
 }
 
-function DayDivider({ day, index }: { day: string; index: number }) {
-  const date = day === "unknown" ? null : new Date(day);
-  const valid = date && !Number.isNaN(date.getTime());
+// Day keys are UTC calendar days ("2026-10-03", sliced from created_at), so
+// every date shown for them is formatted in UTC — local time would shift the
+// day back by one for anyone west of GMT.
+function parseDay(day: string): Date {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
 
-  const weekday = valid
-    ? new Intl.DateTimeFormat("en", { weekday: "long" }).format(date!)
-    : "Recent";
-  const month = valid
-    ? new Intl.DateTimeFormat("en", { month: "long" })
-        .format(date!)
-        .toUpperCase()
-    : "";
-  const dayNum = valid ? String(date!.getDate()).padStart(2, "0") : "—";
+function formatDay(day: string, options: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat("en", { ...options, timeZone: "UTC" }).format(
+    parseDay(day),
+  );
+}
+
+function DayDivider({ day, index }: { day: string; index: number }) {
+  const valid =
+    day !== "unknown" && !Number.isNaN(parseDay(day).getTime());
+
+  const weekday = valid ? formatDay(day, { weekday: "long" }) : "Recent";
+  const month = valid ? formatDay(day, { month: "long" }).toUpperCase() : "";
+  const dayNum = valid ? day.slice(8, 10) : "—";
 
   return (
     <div
@@ -63,42 +71,56 @@ function DayDivider({ day, index }: { day: string; index: number }) {
   );
 }
 
-type ArchiveEntry = {
-  day: string;
-  count: number;
-  dayNum: string;
-  weekday: string;
-  monthKey: string;
-};
+const WEEKDAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-function ArchiveRail({
-  entries,
-  activeDay,
+// "2026-10" shifted by `delta` months.
+function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7);
+}
+
+function signalsLabel(count: number) {
+  return `${count} ${count === 1 ? "signal" : "signals"}`;
+}
+
+// A month calendar: days with posts are clickable, empty days are muted.
+// One month at a time, so the rail stays compact however long the history gets.
+function ArchiveCalendar({
+  dayCounts,
+  latestDay,
+  selectedDay,
+  inViewDay,
   onSelect,
 }: {
-  entries: ArchiveEntry[];
-  activeDay: string | null;
+  dayCounts: Map<string, number>;
+  latestDay: string | null;
+  selectedDay: string | null;
+  inViewDay: string | null;
   onSelect: (day: string) => void;
 }) {
-  if (entries.length === 0) return null;
+  const firstMonth = useMemo(
+    () => Array.from(dayCounts.keys()).sort()[0]?.slice(0, 7) ?? null,
+    [dayCounts],
+  );
+  const lastMonth = latestDay?.slice(0, 7) ?? null;
+  const [viewMonth, setViewMonth] = useState(lastMonth);
 
-  // Build a flat list with month boundary markers so the eye can scan.
-  const items: Array<
-    | { kind: "month"; key: string; label: string }
-    | { kind: "day"; entry: ArchiveEntry }
-  > = [];
-  let lastMonth = "";
-  for (const entry of entries) {
-    if (entry.monthKey !== lastMonth) {
-      items.push({
-        kind: "month",
-        key: `m-${entry.monthKey}`,
-        label: entry.monthKey,
-      });
-      lastMonth = entry.monthKey;
-    }
-    items.push({ kind: "day", entry });
-  }
+  if (!viewMonth || !firstMonth || !lastMonth) return null;
+
+  const [year, month] = viewMonth.split("-").map(Number);
+  const leadingBlanks = (parseDay(`${viewMonth}-01`).getUTCDay() + 6) % 7; // Monday first
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const days = Array.from(
+    { length: daysInMonth },
+    (_, i) => `${viewMonth}-${String(i + 1).padStart(2, "0")}`,
+  );
+  const monthLabel = formatDay(`${viewMonth}-01`, {
+    month: "long",
+    year: "numeric",
+  });
+
+  const arrowClass =
+    "flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-zinc-700 transition hover:bg-white hover:text-zinc-950 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent";
 
   return (
     <aside className="hidden lg:block">
@@ -117,60 +139,103 @@ function ArchiveRail({
             Subscribe →
           </p>
         </a>
-        <p className="mb-5 border-b border-zinc-900/15 pb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500">
-          The archive
+        <p className="mb-4 border-b border-zinc-900/15 pb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-zinc-500">
+          Archive
         </p>
-        <ul className="space-y-1">
-          {items.map((item) =>
-            item.kind === "month" ? (
-              <li
-                key={item.key}
-                className="pb-1 pt-4 text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-400 first:pt-0"
-              >
-                {item.label}
-              </li>
-            ) : (
-              <li key={item.entry.day}>
-                <button
-                  onClick={() => onSelect(item.entry.day)}
-                  className={`group flex w-full items-baseline gap-3 rounded-md px-2 py-1.5 text-left transition ${
-                    activeDay === item.entry.day
-                      ? "bg-zinc-900 text-white"
-                      : "text-zinc-700 hover:bg-white"
-                  }`}
+
+        <div className="mb-3 flex items-center justify-between">
+          <button
+            onClick={() => setViewMonth(shiftMonth(viewMonth, -1))}
+            disabled={viewMonth <= firstMonth}
+            aria-label="Previous month"
+            className={arrowClass}
+          >
+            ‹
+          </button>
+          <p className="text-sm font-black tracking-tight text-zinc-950" aria-live="polite">
+            {monthLabel}
+          </p>
+          <button
+            onClick={() => setViewMonth(shiftMonth(viewMonth, 1))}
+            disabled={viewMonth >= lastMonth}
+            aria-label="Next month"
+            className={arrowClass}
+          >
+            ›
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-0.5 text-center">
+          {WEEKDAY_LABELS.map((label) => (
+            <span
+              key={label}
+              className="pb-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400"
+            >
+              {label}
+            </span>
+          ))}
+          {Array.from({ length: leadingBlanks }, (_, i) => (
+            <span key={`blank-${i}`} aria-hidden="true" />
+          ))}
+          {days.map((day) => {
+            const count = dayCounts.get(day) ?? 0;
+            const dayNum = Number(day.slice(8));
+            if (count === 0) {
+              return (
+                <span
+                  key={day}
+                  className="flex aspect-square items-center justify-center text-xs tabular-nums text-zinc-300"
                 >
-                  <span
-                    className={`min-w-[2ch] text-base font-black tabular-nums tracking-tight ${
-                      activeDay === item.entry.day
-                        ? "text-white"
-                        : "text-zinc-950"
-                    }`}
-                  >
-                    {item.entry.dayNum}
-                  </span>
-                  <span
-                    className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                      activeDay === item.entry.day
-                        ? "text-white/80"
-                        : "text-zinc-500"
-                    }`}
-                  >
-                    {item.entry.weekday}
-                  </span>
-                  <span
-                    className={`ml-auto text-[10px] font-medium tabular-nums ${
-                      activeDay === item.entry.day
-                        ? "text-white/70"
-                        : "text-zinc-400"
-                    }`}
-                  >
-                    {item.entry.count}
-                  </span>
-                </button>
-              </li>
-            ),
+                  {dayNum}
+                </span>
+              );
+            }
+            const selected = day === selectedDay;
+            const inView = !selectedDay && day === inViewDay;
+            return (
+              <button
+                key={day}
+                onClick={() => onSelect(day)}
+                aria-pressed={selected}
+                aria-label={`${formatDay(day, { weekday: "long", month: "long", day: "numeric" })}, ${signalsLabel(count)}`}
+                title={signalsLabel(count)}
+                className={`flex aspect-square items-center justify-center rounded-full text-xs font-bold tabular-nums transition ${
+                  selected
+                    ? "bg-zinc-900 text-white"
+                    : inView
+                      ? "bg-white text-zinc-950 ring-1 ring-zinc-900/25"
+                      : "text-zinc-800 hover:bg-white hover:text-zinc-950"
+                }`}
+              >
+                {dayNum}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 border-t border-zinc-900/15 pt-3 text-xs">
+          {selectedDay ? (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-semibold text-zinc-800">
+                {formatDay(selectedDay, { weekday: "short", month: "short", day: "numeric" })}
+                <span className="font-medium text-zinc-500">
+                  {" · "}
+                  {signalsLabel(dayCounts.get(selectedDay) ?? 0)}
+                </span>
+              </span>
+              <button
+                onClick={() => onSelect(selectedDay)}
+                className="shrink-0 text-zinc-700 underline underline-offset-2 transition hover:text-zinc-950"
+              >
+                Show all
+              </button>
+            </div>
+          ) : (
+            <p className="leading-5 text-zinc-500">
+              Pick a day to see what was posted.
+            </p>
           )}
-        </ul>
+        </div>
       </div>
     </aside>
   );
@@ -278,35 +343,16 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
     return Array.from(map.entries()).map(([day, list]) => ({ day, posts: list }));
   }, [visiblePosts]);
 
-  // Archive entries derived from the full unfiltered post set — the rail
+  // Posts per day, from the full unfiltered post set — the calendar
   // represents the publication's history, not the current filtered view.
-  const archiveEntries = useMemo<ArchiveEntry[]>(() => {
+  const dayCounts = useMemo(() => {
     const map = new Map<string, number>();
     for (const post of posts) {
       const day = post.created_at?.slice(0, 10);
       if (!day) continue;
       map.set(day, (map.get(day) ?? 0) + 1);
     }
-    return Array.from(map.entries())
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([day, count]) => {
-        const date = new Date(day);
-        const valid = !Number.isNaN(date.getTime());
-        return {
-          day,
-          count,
-          dayNum: valid ? String(date.getDate()).padStart(2, "0") : "—",
-          weekday: valid
-            ? new Intl.DateTimeFormat("en", { weekday: "short" }).format(date)
-            : "—",
-          monthKey: valid
-            ? new Intl.DateTimeFormat("en", {
-                month: "long",
-                year: "numeric",
-              }).format(date)
-            : "Other",
-        };
-      });
+    return map;
   }, [posts]);
 
   // Selecting a day in the archive rail filters the feed to that day (plus
@@ -364,10 +410,12 @@ export function FilterableGallery({ posts }: { posts: Post[] }) {
 
   return (
     <section className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-8">
-      <div className="grid gap-10 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-12">
-        <ArchiveRail
-          entries={archiveEntries}
-          activeDay={dayFilter ?? activeDay}
+      <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
+        <ArchiveCalendar
+          dayCounts={dayCounts}
+          latestDay={latestDay}
+          selectedDay={dayFilter}
+          inViewDay={activeDay}
           onSelect={selectDay}
         />
 
