@@ -61,7 +61,7 @@ jobs:
         if: ${{ failure() }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+          ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID || '322001315' }}  # Fedor's private chat with @desaign_radar_bot
           WORKFLOW_NAME: ${{ github.workflow }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
